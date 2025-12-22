@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { PlayCircle, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 const MaterialCard = ({ materi }) => {
   const getThumbnail = (url) => {
@@ -10,7 +11,7 @@ const MaterialCard = ({ materi }) => {
       const id = match && match[2] && match[2].length === 11 ? match[2] : null;
       return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : 'https://placehold.co/600x400?text=Video';
     } else {
-      return `http://localhost:5000${url}`;
+      return `${API_BASE_URL}${url}`;
     }
   };
 
@@ -42,7 +43,7 @@ const MaterialCard = ({ materi }) => {
           {materi.tipe_media === 'video_lokal' ? (
             <video
               ref={videoRef}
-              src={`http://localhost:5000${materi.url_media}`}
+              src={`${API_BASE_URL}${materi.url_media}`}
               className="w-full h-full object-cover"
               preload="metadata"
               muted

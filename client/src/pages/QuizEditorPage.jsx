@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, Plus, Trash, Save, CheckCircle, Image } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../config';
 
 const QuizEditorPage = () => {
   const { materiId } = useParams();
@@ -14,12 +15,12 @@ const QuizEditorPage = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const materiRes = await axios.get('http://localhost:5000/api/materi');
+      const materiRes = await axios.get('/api/materi');
       const foundMateri = materiRes.data.find(m => m._id === materiId);
       setMateri(foundMateri);
 
       try {
-        const quizRes = await axios.get(`http://localhost:5000/api/kuis/${materiId}`);
+        const quizRes = await axios.get(`/api/kuis/${materiId}`);
         if (quizRes.data && quizRes.data.pertanyaan) {
           const loadedQuestions = quizRes.data.pertanyaan.map(q => ({
             ...q,
@@ -86,7 +87,7 @@ const QuizEditorPage = () => {
     formData.append('file', file);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/upload', formData, {
+      const res = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -128,7 +129,7 @@ const QuizEditorPage = () => {
     try {
       // Clean up UI-only fields like 'tipe_media' before sending if strictly needed, 
       // but Mongoose usually ignores unknown fields. We send it as is.
-      await axios.post('http://localhost:5000/api/kuis', {
+      await axios.post('/api/kuis', {
         materi: materiId,
         pertanyaan: questions
       });
@@ -251,7 +252,7 @@ const QuizEditorPage = () => {
                     <div className="mt-3">
                         <p className="text-xs text-gray-500 mb-1">Preview:</p>
                         <img 
-                            src={q.gambar_soal.startsWith('/') ? `http://localhost:5000${q.gambar_soal}` : q.gambar_soal} 
+                            src={q.gambar_soal.startsWith('/') ? `${API_BASE_URL}${q.gambar_soal}` : q.gambar_soal} 
                             alt="Preview Soal" 
                             className="h-32 object-contain rounded-md border bg-white"
                             onError={(e) => e.target.style.display = 'none'} 

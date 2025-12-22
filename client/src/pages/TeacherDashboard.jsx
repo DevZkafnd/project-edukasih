@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
+import { API_BASE_URL } from '../config';
 
 const SidebarItem = ({ label, iconEl, active, onClick }) => (
   <button
@@ -87,8 +88,8 @@ const TeacherDashboard = () => {
   const fetchData = async () => {
     try {
       const [studentsRes, materialsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/auth/students'),
-        axios.get('http://localhost:5000/api/materi')
+        axios.get('/api/auth/students'),
+        axios.get('/api/materi')
       ]);
       setStudents(studentsRes.data);
       setMaterials(materialsRes.data);
@@ -130,7 +131,7 @@ const TeacherDashboard = () => {
     e.preventDefault();
     const toastId = toast.loading('Membuat akun siswa...');
     try {
-      await axios.post('http://localhost:5000/api/auth/students', createStudent);
+      await axios.post('/api/auth/students', createStudent);
       toast.success('Siswa berhasil dibuat', { id: toastId });
       setCreateStudent({ nama: '', username: '', password: '', nama_orang_tua: '' });
       fetchData();
@@ -162,7 +163,7 @@ const TeacherDashboard = () => {
     try {
       const payload = { ...editStudentForm };
       if (!payload.password) delete payload.password;
-      await axios.put(`http://localhost:5000/api/auth/students/${editingStudent._id}`, payload);
+      await axios.put(`/api/auth/students/${editingStudent._id}`, payload);
       toast.success('Data siswa diperbarui', { id: toastId });
       setEditingStudent(null);
       fetchData();
@@ -199,7 +200,7 @@ const TeacherDashboard = () => {
   const deleteStudent = async (id) => {
     const toastId = toast.loading('Menghapus siswa...');
     try {
-      await axios.delete(`http://localhost:5000/api/auth/students/${id}`);
+      await axios.delete(`/api/auth/students/${id}`);
       toast.success('Siswa berhasil dihapus', { id: toastId });
       fetchData();
     } catch (error) {
@@ -258,12 +259,12 @@ const TeacherDashboard = () => {
 
       let response;
       if (isEdit) {
-        response = await axios.put(`http://localhost:5000/api/materi/${editMateri._id}`, data, config);
+        response = await axios.put(`/api/materi/${editMateri._id}`, data, config);
         toast.success('Materi berhasil diperbarui!', { id: toastId });
         setEditMateri(null); // Clear edit mode
         setActiveTab('materi'); // Go back to list
       } else {
-        response = await axios.post('http://localhost:5000/api/materi', data, config);
+        response = await axios.post('/api/materi', data, config);
         toast.success('Materi berhasil diupload! Mengalihkan...', { id: toastId });
         setTimeout(() => {
             navigate(`/manage-quiz/${response.data._id}`);
@@ -319,7 +320,7 @@ const TeacherDashboard = () => {
   const confirmDelete = async (id) => {
     const toastId = toast.loading('Menghapus...');
     try {
-      await axios.delete(`http://localhost:5000/api/materi/${id}`);
+      await axios.delete(`/api/materi/${id}`);
       toast.success('Materi berhasil dihapus', { id: toastId });
       fetchData();
     } catch {
@@ -739,7 +740,7 @@ const TeacherDashboard = () => {
                                         })()
                                     ) : m.tipe_media === 'video_lokal' ? (
                                         <video
-                                          src={`http://localhost:5000${m.url_media}`}
+                                          src={`${API_BASE_URL}${m.url_media}`}
                                           className="w-full h-full object-cover"
                                           preload="metadata"
                                           muted
@@ -750,7 +751,7 @@ const TeacherDashboard = () => {
                                         />
                                     ) : (
                                         <img
-                                          src={`http://localhost:5000${m.url_media}`}
+                                          src={`${API_BASE_URL}${m.url_media}`}
                                           alt={m.judul}
                                           className="w-full h-full object-cover"
                                           onError={(e) => e.target.src = 'https://placehold.co/600x400?text=Gambar'}

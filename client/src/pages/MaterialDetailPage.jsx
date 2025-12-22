@@ -6,6 +6,7 @@ import VideoPlayerWrapper from '../components/VideoPlayerWrapper';
 import StepViewer from '../components/StepViewer';
 import VoiceButton from '../components/VoiceButton';
 import useAudio from '../hooks/useAudio';
+import { API_BASE_URL } from '../config';
 
 const MaterialDetailPage = () => {
   const { id } = useParams();
@@ -21,7 +22,7 @@ const MaterialDetailPage = () => {
   useEffect(() => {
     const fetchMateri = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/materi/${id}`); 
+        const response = await axios.get(`/api/materi/${id}`); 
         setMateri(response.data);
         setLoading(false);
         
@@ -76,7 +77,7 @@ const MaterialDetailPage = () => {
         ) : (materi.tipe_media === 'video_lokal' || /\.(mp4|mkv|avi|webm)$/i.test(materi.url_media)) ? (
            <div className="rounded-2xl overflow-hidden shadow-lg border-4 border-brand-blue bg-black">
               <video 
-                src={`http://localhost:5000${materi.url_media}`} 
+                src={`${API_BASE_URL}${materi.url_media}`} 
                 controls 
                 className="w-full h-auto aspect-video"
               >
@@ -85,7 +86,7 @@ const MaterialDetailPage = () => {
            </div>
         ) : (
            <div className="rounded-2xl overflow-hidden shadow-lg border-4 border-brand-blue">
-              <img src={`http://localhost:5000${materi.url_media}`} alt={materi.judul} className="w-full object-cover" />
+              <img src={`${API_BASE_URL}${materi.url_media}`} alt={materi.judul} className="w-full object-cover" />
            </div>
         )}
 

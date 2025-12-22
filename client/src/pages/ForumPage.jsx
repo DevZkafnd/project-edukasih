@@ -25,7 +25,7 @@ const ForumPage = () => {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/messages');
+      const response = await axios.get('/api/messages');
       setMessages(response.data);
       setLoading(false);
       scrollToBottom();
@@ -49,7 +49,7 @@ const ForumPage = () => {
     if (!newMessage.trim()) return;
 
     try {
-      await axios.post('http://localhost:5000/api/messages', {
+      await axios.post('/api/messages', {
         pengirim_id: user.id, // Using user.id from AuthContext
         isi: newMessage,
         reply_to: replyTarget?._id || null

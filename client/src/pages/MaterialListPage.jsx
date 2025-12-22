@@ -35,7 +35,7 @@ const MaterialListPage = () => {
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/materi?kategori=${kategori}`);
+        const response = await axios.get(`/api/materi?kategori=${kategori}`);
         setMaterials(response.data);
         setLoading(false);
       } catch (err) {

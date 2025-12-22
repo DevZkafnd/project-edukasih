@@ -28,7 +28,7 @@ const QuizSessionPage = () => {
 
   const fetchQuiz = useCallback(async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/kuis/${materiId}`);
+      const response = await axios.get(`/api/kuis/${materiId}`);
       setKuis(response.data);
       setLoading(false);
     } catch (error) {
@@ -99,7 +99,7 @@ const QuizSessionPage = () => {
     }
 
     try {
-        await axios.post('http://localhost:5000/api/kuis/submit', {
+        await axios.post('/api/kuis/submit', {
             siswaId: user.id || user._id, // Handle potential ID field difference
             kuisId: kuis._id,
             jawabanSiswa: finalAnswers

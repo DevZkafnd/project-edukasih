@@ -1,5 +1,6 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
   // Grid layout for answers
@@ -9,7 +10,11 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
       <div className="bg-white rounded-3xl p-8 shadow-xl mb-8 border-b-8 border-brand-blue/20 text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">{question.teks_pertanyaan}</h2>
         {question.gambar_soal && (
-          <img src={question.gambar_soal} alt="Soal" className="mx-auto rounded-xl max-h-64 object-contain" />
+          <img 
+            src={question.gambar_soal.startsWith('/') ? `${API_BASE_URL}${question.gambar_soal}` : question.gambar_soal} 
+            alt="Soal" 
+            className="mx-auto rounded-xl max-h-64 object-contain" 
+          />
         )}
       </div>
 
@@ -41,7 +46,11 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
             >
               {icon}
               {opsi.gambar ? (
-                <img src={opsi.gambar} alt={`Jawaban ${index + 1}`} className="h-20 object-contain" />
+                <img 
+                  src={opsi.gambar.startsWith('/') ? `${API_BASE_URL}${opsi.gambar}` : opsi.gambar} 
+                  alt={`Jawaban ${index + 1}`} 
+                  className="h-20 object-contain" 
+                />
               ) : (
                 <span>{opsi.teks}</span>
               )}
