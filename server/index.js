@@ -1,3 +1,13 @@
+// Global Error Handlers to prevent crash
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+  // Do not exit in Vercel, just log
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');

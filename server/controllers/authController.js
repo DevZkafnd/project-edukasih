@@ -3,6 +3,9 @@ const Siswa = require('../models/Siswa');
 // Register (Untuk Guru membuatkan akun Siswa, atau Register Mandiri)
 exports.register = async (req, res) => {
   try {
+    if (!isDBConnected()) {
+       return res.status(503).json({ message: 'Service Unavailable: Database connection failed.' });
+    }
     const { nama, username, password, role, nama_orang_tua } = req.body;
 
     // Simple validation
