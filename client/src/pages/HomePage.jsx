@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, Scissors, Calculator, MessageSquare, LogOut } from 'lucide-react';
+import { BookOpen, Briefcase, Heart, MessageSquare, LogOut } from 'lucide-react';
 import VoiceButton from '../components/VoiceButton';
 import useAuth from '../hooks/useAuth';
 import useAudio from '../hooks/useAudio';
@@ -24,24 +24,24 @@ const HomePage = () => {
   const categories = [
     { 
       id: 'akademik', 
-      title: 'Berhitung', 
-      icon: <Calculator size={64} className="text-white" />, 
+      title: 'Akademik', 
+      icon: <BookOpen size={64} className="text-white" />, 
       color: 'bg-brand-blue',
-      voice: 'Ayo belajar berhitung!'
+      voice: 'Ayo belajar akademik!'
     },
     { 
       id: 'vokasi', 
-      title: 'Belajar Masak', 
-      icon: <Utensils size={64} className="text-white" />, 
+      title: 'Vokasional', 
+      icon: <Briefcase size={64} className="text-white" />, 
       color: 'bg-brand-yellow',
-      voice: 'Yuk belajar memasak yang enak!'
+      voice: 'Ayo belajar keterampilan vokasional!'
     },
     { 
       id: 'lifeskill', 
-      title: 'Bina Diri', 
-      icon: <Scissors size={64} className="text-white" />, 
+      title: 'Soft Skill', 
+      icon: <Heart size={64} className="text-white" />, 
       color: 'bg-brand-green',
-      voice: 'Mari belajar merawat diri.'
+      voice: 'Mari belajar soft skill.'
     }
   ];
 

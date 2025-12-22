@@ -17,7 +17,7 @@ const MaterialListPage = () => {
   const categoryNames = useMemo(() => ({
     akademik: 'Akademik',
     vokasi: 'Vokasional',
-    lifeskill: 'Life Skills'
+    lifeskill: 'Soft Skill'
   }), []);
 
   useEffect(() => {
