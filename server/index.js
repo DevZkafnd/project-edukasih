@@ -33,37 +33,41 @@ app.get('/', (req, res) => {
   res.send('API EduKasih Running...');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  let lastPurgeKey = null;
-  const checkAndPurge = async () => {
-    try {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Jakarta',
-        weekday: 'long',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).formatToParts(new Date());
-      const get = (type) => parts.find(p => p.type === type)?.value;
-      const weekday = get('weekday');
-      const hour = get('hour');
-      const minute = get('minute');
-      const year = get('year');
-      const month = get('month');
-      const day = get('day');
-      const key = `${year}-${month}-${day}`;
-      if (weekday === 'Sunday' && hour === '00' && minute === '00' && lastPurgeKey !== key) {
-        await Message.deleteMany({});
-        lastPurgeKey = key;
-        console.log('Forum messages purged for', key);
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    let lastPurgeKey = null;
+    const checkAndPurge = async () => {
+      try {
+        const parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Asia/Jakarta',
+          weekday: 'long',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).formatToParts(new Date());
+        const get = (type) => parts.find(p => p.type === type)?.value;
+        const weekday = get('weekday');
+        const hour = get('hour');
+        const minute = get('minute');
+        const year = get('year');
+        const month = get('month');
+        const day = get('day');
+        const key = `${year}-${month}-${day}`;
+        if (weekday === 'Sunday' && hour === '00' && minute === '00' && lastPurgeKey !== key) {
+          await Message.deleteMany({});
+          lastPurgeKey = key;
+          console.log('Forum messages purged for', key);
+        }
+      } catch (e) {
+        console.error('Purge check error', e.message);
       }
-    } catch (e) {
-      console.error('Purge check error', e.message);
-    }
-  };
-  setInterval(checkAndPurge, 30000);
-});
+    };
+    setInterval(checkAndPurge, 30000);
+  });
+}
