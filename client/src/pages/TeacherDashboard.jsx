@@ -27,7 +27,12 @@ const TeacherDashboard = () => {
   const [materials, setMaterials] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState('monitoring'); // 'monitoring', 'materi', 'upload'
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // For responsive toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed for mobile
+
+  // Close sidebar when route changes (optional, but good for UX)
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [navigate]);
   const [editMateri, setEditMateri] = useState(null); // If editing, stores materi object
   const isEdit = !!editMateri;
   const [createStudent, setCreateStudent] = useState({ nama: '', username: '', password: '', nama_orang_tua: '' });
@@ -332,18 +337,35 @@ const TeacherDashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans overflow-hidden">
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-20 bg-black bg-opacity-50 md:hidden transition-opacity duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
       <aside 
         className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } md:relative md:translate-x-0 flex flex-col`}
       >
-        <div className="p-6 border-b flex items-center gap-3">
-          <BookOpen className="text-brand-blue" size={32} />
-          <div>
-            <h1 className="text-xl font-bold text-brand-blue">EduKasih</h1>
-            <p className="text-xs text-gray-500">Dashboard Guru</p>
+        <div className="p-6 border-b flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BookOpen className="text-brand-blue" size={32} />
+            <div>
+              <h1 className="text-xl font-bold text-brand-blue">EduKasih</h1>
+              <p className="text-xs text-gray-500">Dashboard Guru</p>
+            </div>
           </div>
+          <button 
+            onClick={() => setIsSidebarOpen(false)} 
+            className="md:hidden text-gray-500 hover:text-red-500 transition-colors"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -351,13 +373,13 @@ const TeacherDashboard = () => {
             label="Monitoring Siswa" 
             iconEl={<Users size={20} />} 
             active={activeTab === 'monitoring'} 
-            onClick={() => setActiveTab('monitoring')}
+            onClick={() => { setActiveTab('monitoring'); setIsSidebarOpen(false); }}
           />
           <SidebarItem 
             label="Manajemen Materi" 
             iconEl={<LayoutDashboard size={20} />} 
             active={activeTab === 'materi'} 
-            onClick={() => setActiveTab('materi')}
+            onClick={() => { setActiveTab('materi'); setIsSidebarOpen(false); }}
           />
           <SidebarItem 
             label="Upload Materi Baru" 
@@ -375,11 +397,16 @@ const TeacherDashboard = () => {
               });
               setFile(null);
               setActiveTab('upload');
+              setIsSidebarOpen(false);
             }}
           />
           
           <div className="pt-4 mt-4 border-t">
-            <Link to="/forum" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-brand-blue rounded-xl transition-all">
+            <Link 
+              to="/forum" 
+              onClick={() => setIsSidebarOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-brand-blue rounded-xl transition-all"
+            >
                 <MessageSquare size={20} />
                 <span className="font-medium">Forum Kelas</span>
             </Link>
