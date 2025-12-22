@@ -39,8 +39,24 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Connect Database
-connectDB();
+// Connect Database with Middleware for Vercel
+app.use(async (req, res, next) => {
+  // Skip DB connection for basic routes or static files if needed
+  if (req.url === '/' || req.url.startsWith('/uploads') || req.url.startsWith('/api/debug')) {
+    return next();
+  }
+  
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database Connection Failed in Middleware:', error.message);
+    res.status(500).json({ 
+      message: 'Server Error: Database connection failed', 
+      error: error.message 
+    });
+  }
+});
 
 // Static Folder for Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

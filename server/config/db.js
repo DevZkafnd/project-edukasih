@@ -1,26 +1,41 @@
 const mongoose = require('mongoose');
 
+let cachedPromise = null;
+
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    // console.log('MongoDB already connected');
+    return mongoose.connection;
+  }
+
+  if (cachedPromise) {
+    // console.log('MongoDB connection promise reused');
+    return cachedPromise;
+  }
+
+  const mongoURI = process.env.MONGO_URI;
+
+  if (process.env.VERCEL && !mongoURI) {
+    const err = new Error('FATAL: MONGO_URI environment variable is not defined in Vercel.');
+    console.error(err.message);
+    throw err;
+  }
+
+  const uriToUse = mongoURI || 'mongodb://localhost:27017/edukasih';
+
   try {
-    const mongoURI = process.env.MONGO_URI;
-    
-    // In Vercel production, do NOT fall back to localhost if variable is missing.
-    // This avoids connection refused errors and long timeouts.
-    if (process.env.VERCEL && !mongoURI) {
-      console.error('FATAL: MONGO_URI environment variable is not defined in Vercel.');
-      return; // Return silently (or throw, but let's just log and skip connection to avoid crash loop)
-    }
-
-    const uriToUse = mongoURI || 'mongodb://localhost:27017/edukasih';
-
-    const conn = await mongoose.connect(uriToUse, {
-      serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+    cachedPromise = mongoose.connect(uriToUse, {
+      serverSelectionTimeoutMS: 5000,
+      bufferCommands: false // Disable buffering to fail fast if no connection
     });
+
+    const conn = await cachedPromise;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
     console.error(`Error Connecting to MongoDB: ${error.message}`);
-    // Do not exit process in serverless environment
-    // process.exit(1); 
+    cachedPromise = null; // Reset promise on error so we can retry
+    throw error;
   }
 };
 

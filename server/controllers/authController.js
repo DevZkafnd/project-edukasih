@@ -1,8 +1,22 @@
 const Siswa = require('../models/Siswa');
+const mongoose = require('mongoose');
+
+// Helper to check DB status
+const checkDB = (res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ 
+      message: 'Service Unavailable: Database connection failed. Please check server logs for auth errors.',
+      readyState: mongoose.connection.readyState
+    });
+  }
+  return null;
+};
 
 // Register (Untuk Guru membuatkan akun Siswa, atau Register Mandiri)
 exports.register = async (req, res) => {
   try {
+    if (checkDB(res)) return;
+
     const { nama, username, password, role, nama_orang_tua } = req.body;
 
     // Simple validation
@@ -47,6 +61,8 @@ const jwt = require('jsonwebtoken');
 // Login
 exports.login = async (req, res) => {
   try {
+    if (checkDB(res)) return;
+
     const { username, password } = req.body;
 
     // Find user
