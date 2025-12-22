@@ -52,18 +52,20 @@ const MaterialListPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <header className="max-w-6xl mx-auto flex items-center justify-between mb-8">
-        <Link to="/" className="flex items-center gap-2 text-brand-blue font-bold text-xl hover:underline">
-          <ArrowLeft size={32} />
-          Kembali
+      <header className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-4 sm:gap-0">
+        <Link to="/" className="self-start sm:self-auto flex items-center gap-2 text-brand-blue font-bold text-xl hover:underline">
+          <ArrowLeft size={28} className="sm:w-8 sm:h-8" />
+          <span className="text-lg sm:text-xl">Kembali</span>
         </Link>
-        <h1 className="text-3xl font-bold text-gray-800">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center order-first sm:order-none">
           Belajar {categoryNames[kategori] || kategori}
         </h1>
-        <VoiceButton 
-          text="Bacakan" 
-          audioScript={`Ini adalah halaman materi ${categoryNames[kategori] || kategori}. Pilih salah satu untuk mulai belajar.`} 
-        />
+        <div className="self-end sm:self-auto">
+            <VoiceButton 
+            text="Bacakan" 
+            audioScript={`Ini adalah halaman materi ${categoryNames[kategori] || kategori}. Pilih salah satu untuk mulai belajar.`} 
+            />
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto">

@@ -39,7 +39,7 @@ const MaterialCard = ({ materi }) => {
   return (
     <Link to={`/materi/${materi._id}`} className="block">
       <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-1 cursor-pointer border-2 border-brand-blue/20">
-        <div className="relative h-48 bg-gray-200">
+        <div className="relative h-40 md:h-48 bg-gray-200">
           {materi.tipe_media === 'video_lokal' ? (
             <video
               ref={videoRef}

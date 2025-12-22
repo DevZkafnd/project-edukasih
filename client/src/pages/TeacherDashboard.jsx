@@ -665,8 +665,8 @@ const TeacherDashboard = () => {
 
           {activeTab === 'materi' && (
             <div className="space-y-6">
-               <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
                         <LayoutDashboard className="text-brand-blue" /> Manajemen Materi & Kuis
                     </h2>
                     <button 
@@ -674,7 +674,7 @@ const TeacherDashboard = () => {
                             setEditMateri(null);
                             setActiveTab('upload');
                         }}
-                        className="bg-brand-blue text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition"
+                        className="w-full sm:w-auto bg-brand-blue text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition"
                     >
                         <Upload size={18} /> Tambah Materi
                     </button>
