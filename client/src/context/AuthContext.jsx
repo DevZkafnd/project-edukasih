@@ -18,6 +18,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }, 0);
       return () => clearTimeout(id);
+    } else {
+      const id = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(id);
     }
   }, []);
 
