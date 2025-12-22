@@ -20,19 +20,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Enable CORS with broad permissions for debugging
+// origin: true reflects the request origin, effectively allowing all origins while supporting credentials
+const corsOptions = {
+  origin: true, 
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Preflight
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
 });
 
-const allowedOrigin = process.env.CLIENT_ORIGIN || '*';
-const corsOptions = {
-  origin: allowedOrigin === '*' ? true : allowedOrigin,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Connect Database
@@ -52,6 +56,19 @@ app.use('/api/upload', require('./routes/uploadRoutes'));
 // Basic Route
 app.get('/', (req, res) => {
   res.send('API EduKasih Running...');
+});
+
+// Debug Route
+app.get('/api/debug', (req, res) => {
+  res.json({
+    message: 'Debug endpoint',
+    origin: req.headers.origin,
+    headers: req.headers,
+    env: {
+      mongo: process.env.MONGO_URI ? 'Set' : 'Unset',
+      vercel: process.env.VERCEL
+    }
+  });
 });
 
 if (process.env.VERCEL) {
