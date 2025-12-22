@@ -10,6 +10,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+  next();
+});
+
 const allowedOrigin = process.env.CLIENT_ORIGIN || '*';
 const corsOptions = {
   origin: allowedOrigin === '*' ? true : allowedOrigin,
