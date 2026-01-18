@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
+import useAudio from '../hooks/useAudio';
 import { API_BASE_URL } from '../config';
 
 const SidebarItem = ({ label, iconEl, active, onClick }) => (
@@ -22,6 +23,7 @@ const SidebarItem = ({ label, iconEl, active, onClick }) => (
 
 const TeacherDashboard = () => {
   const { user, logout, loading: authLoading } = useAuth();
+  const { stopAll } = useAudio();
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [materials, setMaterials] = useState([]);
@@ -419,7 +421,10 @@ const TeacherDashboard = () => {
             </div>
           </div>
           <button 
-            onClick={logout} 
+            onClick={() => { 
+              stopAll();
+              logout();
+            }} 
             className="w-full flex items-center justify-center gap-2 bg-red-100 text-red-600 py-2 rounded-lg hover:bg-red-200 transition text-sm font-bold"
           >
             <LogOut size={16} /> Keluar

@@ -21,6 +21,11 @@ const HomePage = () => {
     };
   }, [playText, stopAll]);
 
+  const handleLogout = () => {
+    stopAll();
+    logout();
+  };
+
   const categories = [
     { 
       id: 'akademik', 
@@ -57,7 +62,7 @@ const HomePage = () => {
               <Link to="/forum" className="p-2 bg-blue-50 text-brand-blue rounded-full hover:bg-blue-100 transition" title="Forum Kelas">
                 <MessageSquare size={20} className="md:w-6 md:h-6" />
               </Link>
-              <button onClick={logout} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition" title="Keluar">
+              <button onClick={handleLogout} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition" title="Keluar">
                 <LogOut size={20} className="md:w-6 md:h-6" />
               </button>
             </>

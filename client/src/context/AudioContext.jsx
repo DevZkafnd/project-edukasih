@@ -1,10 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE_URL } from '../config';
 import { AudioContext } from './AudioContextBase';
 
 export const AudioProvider = ({ children }) => {
   const currentAudioRef = useRef(null);
+  const lastTextRef = useRef(null);
+  const audioUnlockedRef = useRef(false);
   
   const stopAll = () => {
     // Stop Web Speech API (legacy cleanup)
@@ -30,7 +31,13 @@ export const AudioProvider = ({ children }) => {
         // Playing started
       }).catch((e) => {
         console.warn("Audio auto-play blocked by browser policy (needs interaction):", e.message);
-        // Do not alert/error, just log silently as this is expected behavior in some cases
+        if ('speechSynthesis' in window && lastTextRef.current && e && (e.name === 'NotAllowedError' || /not allowed|gesture|user interaction/i.test(e.message || ''))) {
+          const { text, rate } = lastTextRef.current;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'id-ID';
+          utterance.rate = rate;
+          window.speechSynthesis.speak(utterance);
+        }
       });
     }
     
@@ -58,8 +65,10 @@ export const AudioProvider = ({ children }) => {
     
     if (!text) return;
 
+    lastTextRef.current = { text, rate };
+
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/tts/speak`, { text }, {
+      const response = await axios.post('/api/tts/speak', { text }, {
         responseType: 'arraybuffer'
       });
 
@@ -94,6 +103,35 @@ export const AudioProvider = ({ children }) => {
       }
     }
   };
+
+  useEffect(() => {
+    const unlock = () => {
+      if (audioUnlockedRef.current) return;
+      const audio = new Audio();
+      audio.muted = true;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.then(() => {
+          audio.pause();
+          audioUnlockedRef.current = true;
+        }).catch(() => {
+        });
+      } else {
+        audioUnlockedRef.current = true;
+      }
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('click', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('touchstart', unlock);
+    window.addEventListener('click', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('click', unlock);
+    };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {

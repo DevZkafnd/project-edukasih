@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, UserPlus, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
+import useAudio from '../hooks/useAudio';
 
 const AdminDashboard = () => {
   const { logout } = useAuth();
+  const { stopAll } = useAudio();
   const navigate = useNavigate();
   const [teachers, setTeachers] = useState([]);
   const [formData, setFormData] = useState({
@@ -34,6 +36,7 @@ const AdminDashboard = () => {
   }, []);
 
   const handleLogout = () => {
+    stopAll();
     logout();
     navigate('/login');
   };
