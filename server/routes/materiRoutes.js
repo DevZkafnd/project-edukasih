@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const materiController = require('../controllers/materiController');
 const upload = require('../middleware/upload');
-const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { protect, teacherOnly } = require('../middleware/authMiddleware');
 
 // GET /api/materi
 router.get('/', materiController.getMaterials);
@@ -11,12 +11,12 @@ router.get('/', materiController.getMaterials);
 router.get('/:id', materiController.getMaterialById);
 
 // POST /api/materi (Upload image/video supported) - Protected
-router.post('/', protect, adminOnly, upload.single('media'), materiController.createMaterial);
+router.post('/', protect, teacherOnly, upload.single('media'), materiController.createMaterial);
 
 // PUT /api/materi/:id - Protected
-router.put('/:id', protect, adminOnly, upload.single('media'), materiController.updateMaterial);
+router.put('/:id', protect, teacherOnly, upload.single('media'), materiController.updateMaterial);
 
 // DELETE /api/materi/:id - Protected
-router.delete('/:id', protect, adminOnly, materiController.deleteMaterial);
+router.delete('/:id', protect, teacherOnly, materiController.deleteMaterial);
 
 module.exports = router;

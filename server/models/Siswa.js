@@ -16,7 +16,7 @@ const SiswaSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['guru', 'siswa'],
+    enum: ['admin', 'guru', 'siswa'],
     default: 'siswa'
   },
   nama_orang_tua: {

@@ -30,7 +30,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Preflight
+// app.options('*', cors(corsOptions)); // Preflight handled by app.use(cors()) usually, or remove explicit * if causing path-to-regexp error in this environment
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
@@ -67,6 +67,7 @@ app.use('/api/kuis', require('./routes/kuisRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/tts', require('./routes/ttsRoutes'));
 
 
 // Basic Route

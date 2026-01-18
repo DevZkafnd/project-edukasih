@@ -16,10 +16,17 @@ const protect = (req, res, next) => {
 };
 
 const adminOnly = (req, res, next) => {
+    if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Akses ditolak. Hanya Admin yang boleh.' });
+    }
+    next();
+};
+
+const teacherOnly = (req, res, next) => {
     if (!req.user || req.user.role !== 'guru') {
         return res.status(403).json({ message: 'Akses ditolak. Hanya Guru yang boleh.' });
     }
     next();
 };
 
-module.exports = { protect, adminOnly };
+module.exports = { protect, adminOnly, teacherOnly };

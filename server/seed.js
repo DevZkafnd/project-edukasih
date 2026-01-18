@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs'); // Import bcryptjs
 const Materi = require('./models/Materi');
 const Kuis = require('./models/Kuis');
 const Siswa = require('./models/Siswa');
@@ -20,23 +21,39 @@ const seedData = async () => {
     await Siswa.deleteMany({});
     console.log('Data cleared.');
 
-    // 0. USERS: Guru & Siswa
+    // Hash passwords
+    const salt = await bcrypt.genSalt(10);
+    const passwordGuru = await bcrypt.hash('password123', salt);
+    const passwordSiswa = await bcrypt.hash('password123', salt);
+    const passwordAdmin = await bcrypt.hash('1admin2', salt);
+
+    // 0. USERS: Admin, Guru & Siswa
+    const admin = await Siswa.create({
+      nama: 'Super Admin',
+      username: 'admin',
+      password: passwordAdmin,
+      role: 'admin'
+    });
+
     const guru = await Siswa.create({
       nama: 'Ibu Budi',
       username: 'guru1',
-      password: 'password123',
+      password: passwordGuru,
       role: 'guru'
     });
 
     const siswa = await Siswa.create({
       nama: 'Andi',
       username: 'andi',
-      password: 'password123',
+      password: passwordSiswa,
       role: 'siswa',
       nama_orang_tua: 'Bapak Andi'
     });
 
-    console.log('Users created: guru1/password123, andi/password123');
+    console.log('Users created with HASHED passwords:');
+    console.log('- Admin: admin / 1admin2');
+    console.log('- Guru: guru1 / password123');
+    console.log('- Siswa: andi / password123');
 
     // 1. VOKASI: Membuat Sandwich
     const materiSandwich = await Materi.create({
