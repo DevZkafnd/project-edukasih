@@ -8,6 +8,7 @@ import MaterialDetailPage from './pages/MaterialDetailPage';
 import QuizSessionPage from './pages/QuizSessionPage';
 import LoginPage from './pages/LoginPage';
 import TeacherDashboard from './pages/TeacherDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import QuizEditorPage from './pages/QuizEditorPage';
 import ForumPage from './pages/ForumPage';
 
@@ -24,6 +25,7 @@ function App() {
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
             <Route path="/dashboard-guru" element={<RequireRole role="guru"><TeacherDashboard /></RequireRole>} />
+            <Route path="/dashboard-admin" element={<RequireRole role="admin"><AdminDashboard /></RequireRole>} />
             <Route path="/manage-quiz/:materiId" element={<QuizEditorPage />} />
             <Route path="/forum" element={<ForumPage />} />
             <Route path="/belajar/:kategori" element={<MaterialListPage />} />
@@ -41,6 +43,7 @@ const RootRedirect = () => {
   const user = auth.user;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'guru') return <Navigate to="/dashboard-guru" replace />;
+  if (user.role === 'admin') return <Navigate to="/dashboard-admin" replace />;
   return <HomePage />;
 };
 
@@ -48,6 +51,7 @@ const PublicOnly = ({ children }) => {
   const auth = useAuth() || {};
   const user = auth.user;
   if (user?.role === 'guru') return <Navigate to="/dashboard-guru" replace />;
+  if (user?.role === 'admin') return <Navigate to="/dashboard-admin" replace />;
   if (user) return <Navigate to="/" replace />;
   return children;
 };

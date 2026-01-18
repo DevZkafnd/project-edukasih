@@ -14,6 +14,8 @@ const LoginPage = () => {
     if (user) {
       if (user.role === 'guru') {
         navigate('/dashboard-guru', { replace: true });
+      } else if (user.role === 'admin') {
+        navigate('/dashboard-admin', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
@@ -37,19 +39,13 @@ const LoginPage = () => {
       // Redirect based on role
       if (user.role === 'guru') {
         navigate('/dashboard-guru');
+      } else if (user.role === 'admin') {
+        navigate('/dashboard-admin');
       } else {
         navigate('/');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Login gagal');
-    }
-  };
-
-  const fillDemo = (role) => {
-    if (role === 'guru') {
-      setFormData({ username: 'guru1', password: 'password123' });
-    } else {
-      setFormData({ username: 'andi', password: 'password123' });
     }
   };
 
@@ -66,24 +62,6 @@ const LoginPage = () => {
             {error}
           </div>
         )}
-
-        {/* Demo Buttons */}
-        <div className="mb-6 grid grid-cols-2 gap-3">
-            <button 
-                type="button"
-                onClick={() => fillDemo('guru')}
-                className="bg-purple-100 text-purple-700 py-2 rounded-lg text-sm font-bold hover:bg-purple-200 transition"
-            >
-                Demo Guru
-            </button>
-            <button 
-                type="button"
-                onClick={() => fillDemo('siswa')}
-                className="bg-green-100 text-green-700 py-2 rounded-lg text-sm font-bold hover:bg-green-200 transition"
-            >
-                Demo Ortu
-            </button>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

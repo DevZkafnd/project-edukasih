@@ -28,11 +28,6 @@ const TeacherDashboard = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState('monitoring'); // 'monitoring', 'materi', 'upload'
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed for mobile
-
-  // Close sidebar when route changes (optional, but good for UX)
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [navigate]);
   const [editMateri, setEditMateri] = useState(null); // If editing, stores materi object
   const isEdit = !!editMateri;
   const [createStudent, setCreateStudent] = useState({ nama: '', username: '', password: '', nama_orang_tua: '' });

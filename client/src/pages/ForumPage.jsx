@@ -66,15 +66,32 @@ const ForumPage = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-md p-4 flex items-center gap-3 sticky top-0 z-10">
-        <div className="bg-brand-blue/10 p-2 rounded-full">
-          <MessageSquare className="text-brand-blue" size={24} />
+      <div className="bg-white shadow-md p-4 flex items-center justify-between gap-3 sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <div className="bg-brand-blue/10 p-2 rounded-full">
+            <MessageSquare className="text-brand-blue" size={24} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">Forum Diskusi Kelas</h1>
+            <p className="text-xs text-gray-500">Ruang komunikasi Orang Tua & Guru</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Forum Diskusi Kelas</h1>
-          <p className="text-xs text-gray-500">Ruang komunikasi Orang Tua & Guru</p>
-        </div>
+        {user && (
+          <button
+            onClick={() => {
+              if (user.role === 'guru') {
+                navigate('/dashboard-guru');
+              } else if (user.role === 'admin') {
+                navigate('/dashboard-admin');
+              } else {
+                navigate('/');
+              }
+            }}
+            className="text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-full border border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white transition font-semibold"
+          >
+            Kembali ke Halaman Utama
+          </button>
+        )}
       </div>
 
       {/* Messages List */}

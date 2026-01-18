@@ -9,10 +9,10 @@ const HomePage = () => {
   const { user, logout } = useAuth();
   const { playText, stopAll } = useAudio();
 
-  // Auto-play audio with 1s delay
+  // Auto-play audio with 1s delay to allow interaction (navigation) to register
   useEffect(() => {
     const timer = setTimeout(() => {
-      playText("Selamat datang di EduKasih. Pilih menu belajar kamu.");
+        playText("Selamat datang di EduKasih. Pilih menu belajar kamu.");
     }, 1000);
 
     return () => {

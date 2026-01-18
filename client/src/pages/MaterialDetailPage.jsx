@@ -30,7 +30,6 @@ const MaterialDetailPage = () => {
         setTimeout(() => {
           if (response.data) playText(response.data.judul);
         }, 1000);
-
       } catch (error) {
         console.error("Error fetching detail:", error);
         setLoading(false);
