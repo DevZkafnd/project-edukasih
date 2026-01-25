@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Send, MessageSquare, User, CornerUpLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import Logo from '../components/Logo';
 
 const ForumPage = () => {
   const { user, loading: authLoading } = useAuth();

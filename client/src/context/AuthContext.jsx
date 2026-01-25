@@ -12,6 +12,12 @@ export const AuthProvider = ({ children }) => {
     const storedAuth = localStorage.getItem('auth');
     if (storedAuth) {
       const parsed = JSON.parse(storedAuth);
+      
+      // Set header immediately to avoid race conditions
+      if (parsed.token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
+      }
+
       const id = setTimeout(() => {
         setUser(parsed.user);
         setToken(parsed.token);

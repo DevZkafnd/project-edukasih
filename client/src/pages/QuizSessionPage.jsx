@@ -8,6 +8,8 @@ import useAudio from '../hooks/useAudio';
 import QuizCard from '../components/QuizCard';
 import ResultModal from '../components/ResultModal';
 import toast from 'react-hot-toast';
+import Logo from '../components/Logo';
+import BackgroundDecorations from '../components/BackgroundDecorations';
 
 // Dummy SFX URLs (In real app, import local assets)
 const SOUND_CORRECT = 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3';
@@ -112,30 +114,36 @@ const QuizSessionPage = () => {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Memuat Kuis...</div>;
-  if (!kuis) return <div className="p-10 text-center">Kuis tidak ditemukan.</div>;
+  if (loading) return <div className="p-10 text-center font-comic">Memuat Kuis...</div>;
+  if (!kuis) return <div className="p-10 text-center font-comic">Kuis tidak ditemukan.</div>;
 
   return (
-    <div className="min-h-screen bg-blue-50 flex flex-col items-center py-10 px-4">
+    <div className="min-h-screen bg-blue-50/50 flex flex-col items-center py-10 px-4 font-comic relative">
+      <BackgroundDecorations />
+      
       {/* Header */}
-      <div className="w-full max-w-4xl flex justify-between items-center mb-8">
-        <Link to={`/materi/${kuis.materi}`} className="p-2 rounded-full hover:bg-white transition">
-            <ArrowLeft size={32} className="text-gray-600" />
+      <div className="w-full max-w-4xl flex justify-between items-center mb-8 relative z-10">
+        <Link to={`/materi/${kuis.materi}`} className="p-2 rounded-full hover:bg-white transition bg-white/50 backdrop-blur-sm border-2 border-white shadow-sm">
+            <ArrowLeft size={32} className="text-brand-blue" />
         </Link>
-        <div className="bg-white px-6 py-2 rounded-full shadow-sm">
-            <span className="text-xl font-bold text-brand-blue">
+        <div className="bg-white/90 backdrop-blur-sm px-6 py-2 rounded-full shadow-lg border-4 border-brand-blue/20">
+            <span className="text-xl font-bold text-brand-blue" style={{ fontFamily: 'Comic Neue, cursive' }}>
                 Soal {currentQuestionIndex + 1} / {kuis.pertanyaan.length}
             </span>
         </div>
-        <div className="w-12"></div> {/* Spacer */}
+        <div className="w-12 flex justify-end">
+            <Logo className="w-12 h-12 drop-shadow-sm" />
+        </div>
       </div>
 
-      <QuizCard 
-        question={kuis.pertanyaan[currentQuestionIndex]}
-        onAnswer={handleAnswer}
-        selectedAnswer={selectedAnswer}
-        correctAnswer={kuis.pertanyaan[currentQuestionIndex].indeks_jawaban_benar}
-      />
+      <div className="relative z-10 w-full max-w-4xl">
+        <QuizCard 
+            question={kuis.pertanyaan[currentQuestionIndex]}
+            onAnswer={handleAnswer}
+            selectedAnswer={selectedAnswer}
+            correctAnswer={kuis.pertanyaan[currentQuestionIndex].indeks_jawaban_benar}
+        />
+      </div>
 
       <ResultModal 
         isOpen={showResult} 

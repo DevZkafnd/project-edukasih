@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background: Brand Blue Rounded Square -->
+  <rect width="512" height="512" rx="100" fill="#00A8E8"/>
+  
+  <!-- Rays of Light (Background Detail) -->
+  <circle cx="256" cy="256" r="200" fill="white" opacity="0.1"/>
+  <circle cx="256" cy="256" r="150" fill="white" opacity="0.1"/>
+
+  <!-- Open Book (Education) -->
+  <path d="M96 320 
+           Q 96 260 256 260 
+           Q 416 260 416 320 
+           V 400 
+           Q 416 340 256 340 
+           Q 96 340 96 400 
+           Z" fill="white"/>
+           
+  <!-- Book Spine Detail -->
+  <path d="M256 260 V 340" stroke="#0090C8" stroke-width="4"/>
+
+  <!-- Heart (Kasih/Care) - Floating above book -->
+  <path d="M256 240
+           L 215 195
+           Q 150 130 150 90
+           Q 150 40 200 40
+           Q 230 40 256 70
+           Q 282 40 312 40
+           Q 362 40 362 90
+           Q 362 130 297 195
+           Z" fill="#FFD166" stroke="white" stroke-width="8" stroke-linejoin="round"/>
+           
+  <!-- Playful Elements (Stars/Circles) for Kids -->
+  <circle cx="120" cy="120" r="16" fill="#FFD166"/>
+  <circle cx="392" cy="140" r="12" fill="#FFD166"/>
+  <path d="M256 90 L 260 100 L 270 100 L 262 108 L 265 118 L 256 112 L 247 118 L 250 108 L 242 100 L 252 100 Z" fill="white"/>
+</svg>

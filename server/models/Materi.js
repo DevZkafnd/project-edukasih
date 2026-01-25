@@ -36,6 +36,11 @@ const MateriSchema = new mongoose.Schema({
   panduan_ortu: {
     type: String,
     default: '' // Tips/Panduan khusus untuk orang tua
+  },
+  siswa: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Siswa',
+    default: null // Jika null, materi bersifat global (opsional, tergantung use case)
   }
 }, { timestamps: true });
 

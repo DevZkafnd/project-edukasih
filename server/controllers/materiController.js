@@ -6,8 +6,20 @@ const path = require('path');
 // Get All Materi (with filtering)
 exports.getMaterials = async (req, res) => {
   try {
-    const { kategori } = req.query;
+    const { kategori, siswa } = req.query; 
     let query = {};
+    
+    // Authorization & Isolation Logic
+    // req.user is available because of 'protect' middleware
+    if (req.user.role === 'siswa') {
+        // Siswa hanya boleh melihat materi miliknya
+        query.siswa = req.user.id;
+    } else {
+        // Guru/Admin bisa melihat semua atau filter by siswa
+        if (siswa) {
+            query.siswa = siswa;
+        }
+    }
     
     if (kategori) {
       query.kategori = kategori;
@@ -25,16 +37,40 @@ exports.getMaterialById = async (req, res) => {
   try {
     const materi = await Materi.findById(req.params.id);
     if (!materi) return res.status(404).json({ message: 'Materi tidak ditemukan' });
+    
+    // Authorization Check
+    if (req.user.role === 'siswa') {
+        // Jika materi punya pemilik spesifik dan bukan siswa ini -> Tolak
+        if (materi.siswa && materi.siswa.toString() !== req.user.id) {
+             return res.status(403).json({ message: 'Akses ditolak. Materi ini bukan untuk Anda.' });
+        }
+    }
+
     res.json(materi);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// Cleanup Legacy Materials (Tanpa Siswa)
+exports.cleanupLegacyMaterials = async (req, res) => {
+    try {
+        const result = await Materi.deleteMany({ 
+            $or: [
+                { siswa: { $exists: false } },
+                { siswa: null }
+            ]
+        });
+        res.json({ message: `Cleanup selesai. Menghapus ${result.deletedCount} materi tanpa pemilik.`, count: result.deletedCount });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Create New Materi
 exports.createMaterial = async (req, res) => {
   try {
-    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah } = req.body;
+    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, siswa } = req.body;
     
     let finalUrlMedia = '';
     let final_tipe_media = tipe_media;
@@ -83,7 +119,8 @@ exports.createMaterial = async (req, res) => {
       tipe_media: final_tipe_media,
       url_media: finalUrlMedia,
       panduan_ortu,
-      langkah_langkah: parsedLangkah
+      langkah_langkah: parsedLangkah,
+      siswa: siswa || null // Assign to student if provided
     });
 
     const savedMateri = await newMateri.save();

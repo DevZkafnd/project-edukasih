@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ArrowLeft, Plus, Trash, Save, CheckCircle, Image } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
 
 const QuizEditorPage = () => {
   const { materiId } = useParams();
@@ -28,8 +29,13 @@ const QuizEditorPage = () => {
           }));
           setQuestions(loadedQuestions);
         }
-      } catch {
-        console.warn("Quiz data not available for materiId:", materiId);
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+             // New quiz, normal behavior
+             console.log("Creating new quiz for materi:", materiId);
+        } else {
+             console.warn("Error fetching quiz:", err);
+        }
       }
       
       setLoading(false);

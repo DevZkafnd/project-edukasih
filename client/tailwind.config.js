@@ -11,6 +11,18 @@ export default {
         'brand-blue': '#00A8E8',
         'brand-green': '#A0E426',
       },
+      fontFamily: {
+        comic: ['"Comic Neue"', 'cursive', 'sans-serif'],
+      },
+      keyframes: {
+        shine: {
+          '0%': { left: '-100%' },
+          '100%': { left: '100%' },
+        }
+      },
+      animation: {
+        shine: 'shine 1s',
+      }
     },
   },
   plugins: [],

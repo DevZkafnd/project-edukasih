@@ -36,6 +36,13 @@ const SiswaSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    riwayat_percobaan: [{
+      skor: Number,
+      tanggal: {
+        type: Date,
+        default: Date.now
+      }
+    }],
     tanggal: {
       type: Date,
       default: Date.now

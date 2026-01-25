@@ -7,6 +7,8 @@ import StepViewer from '../components/StepViewer';
 import VoiceButton from '../components/VoiceButton';
 import useAudio from '../hooks/useAudio';
 import { API_BASE_URL } from '../config';
+import Logo from '../components/Logo';
+import BackgroundDecorations from '../components/BackgroundDecorations';
 
 const MaterialDetailPage = () => {
   const { id } = useParams();
@@ -28,7 +30,10 @@ const MaterialDetailPage = () => {
         
         // Auto-play title after load
         setTimeout(() => {
-          if (response.data) playText(response.data.judul);
+          if (response.data) {
+            // Read "Materi: [Title]" to give context
+            playText(`Materi: ${response.data.judul}`);
+          }
         }, 1000);
       } catch (error) {
         console.error("Error fetching detail:", error);
@@ -38,28 +43,30 @@ const MaterialDetailPage = () => {
     fetchMateri();
   }, [id, playText]);
 
-  if (loading) return <div className="p-10 text-center">Memuat...</div>;
-  if (!materi) return <div className="p-10 text-center">Materi tidak ditemukan.</div>;
+  if (loading) return <div className="p-10 text-center font-comic">Memuat...</div>;
+  if (!materi) return <div className="p-10 text-center font-comic">Materi tidak ditemukan.</div>;
 
   const isVokasi = materi.kategori === 'vokasi' || materi.kategori === 'lifeskill';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-blue-50/50 pb-20 font-comic relative">
+      <BackgroundDecorations />
+      
       {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-20 border-b border-blue-100">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link to={`/belajar/${materi.kategori}`} className="p-2 rounded-full hover:bg-gray-100">
-            <ArrowLeft size={28} className="text-gray-600" />
+          <Link to={`/belajar/${materi.kategori}`} className="p-2 rounded-full hover:bg-blue-100 transition">
+            <ArrowLeft size={28} className="text-brand-blue" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-800 truncate flex-1">{materi.judul}</h1>
+          <h1 className="text-2xl font-bold text-brand-blue truncate flex-1" style={{ fontFamily: 'Comic Neue, cursive' }}>{materi.judul}</h1>
           <VoiceButton text="" audioScript={materi.judul} />
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 relative z-10">
         {/* Parent Guide Section */}
         {materi.panduan_ortu && (
-          <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-r-xl shadow-sm">
+          <div className="bg-orange-50/90 backdrop-blur-sm border-l-4 border-orange-400 p-6 rounded-r-xl shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <Info className="text-orange-500" size={28} />
               <h3 className="text-xl font-bold text-orange-700">Panduan Pendampingan (Info Ayah Bunda)</h3>
@@ -103,7 +110,7 @@ const MaterialDetailPage = () => {
                 )}
             </div>
         ) : (
-            <div className="bg-white rounded-3xl p-8 shadow-md border-2 border-brand-yellow/50">
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-md border-2 border-brand-yellow/50">
                 <h2 className="text-2xl font-bold text-brand-blue mb-4">Ayo Membaca</h2>
                 <p className="text-xl leading-loose text-gray-700 font-medium">
                     {/* Placeholder text for academic if no content field exists yet. 

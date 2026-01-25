@@ -64,6 +64,7 @@ exports.speak = async (req, res) => {
 
     let audioStream;
     try {
+        console.log(`Attempting TTS with Voice ID: ${DEFAULT_VOICE_ID} for text: "${text.substring(0, 20)}..."`);
         audioStream = await client.textToSpeech.convert(
             DEFAULT_VOICE_ID,
             {
@@ -79,22 +80,33 @@ exports.speak = async (req, res) => {
             }
         );
     } catch (voiceError) {
-        console.warn(`Voice ID ${DEFAULT_VOICE_ID} failed, trying fallback ${FALLBACK_VOICE_ID}. Error:`, voiceError.message);
-        // Fallback to Rachel if primary voice fails (e.g. 404 not found)
-        audioStream = await client.textToSpeech.convert(
-            FALLBACK_VOICE_ID,
-            {
-                text: text,
-                model_id: "eleven_multilingual_v2",
-                output_format: "mp3_44100_128",
-                voice_settings: {
-                    stability: 0.5,
-                    similarity_boost: 0.75,
-                    style: 0.0,
-                    use_speaker_boost: true
+        console.warn(`Voice ID ${DEFAULT_VOICE_ID} failed or API error. Detail:`, voiceError?.body || voiceError.message);
+        console.log(`Trying fallback Voice ID: ${FALLBACK_VOICE_ID}`);
+        
+        try {
+            // Fallback to Rachel if primary voice fails (e.g. 404 not found)
+            audioStream = await client.textToSpeech.convert(
+                FALLBACK_VOICE_ID,
+                {
+                    text: text,
+                    model_id: "eleven_multilingual_v2",
+                    output_format: "mp3_44100_128",
+                    voice_settings: {
+                        stability: 0.5,
+                        similarity_boost: 0.75,
+                        style: 0.0,
+                        use_speaker_boost: true
+                    }
                 }
-            }
-        );
+            );
+        } catch (fallbackError) {
+             console.error('Fallback Voice ID also failed:', fallbackError?.body || fallbackError.message);
+             // Return 500 but with more detail so client can fallback to WebSpeech
+             return res.status(500).json({ 
+                 message: 'TTS Provider Error', 
+                 detail: fallbackError?.body || fallbackError.message 
+             });
+        }
     }
 
     // 4. Buffer the stream to handle it easily

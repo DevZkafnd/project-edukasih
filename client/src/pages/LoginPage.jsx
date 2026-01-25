@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import useAuth from '../hooks/useAuth';
 import { User, Lock, ArrowRight } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -52,7 +53,8 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-50 px-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-b-4 border-brand-blue">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Logo className="w-24 h-24 mb-4" />
           <h1 className="text-3xl font-bold text-brand-blue mb-2">EduKasih</h1>
           <p className="text-gray-500">Masuk untuk mulai belajar</p>
         </div>

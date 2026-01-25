@@ -1,60 +1,71 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 
 const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
   // Grid layout for answers
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto font-comic">
       {/* Question */}
-      <div className="bg-white rounded-3xl p-8 shadow-xl mb-8 border-b-8 border-brand-blue/20 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">{question.teks_pertanyaan}</h2>
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-white rounded-[2rem] p-8 shadow-xl mb-8 border-b-8 border-brand-blue/20 text-center relative overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-yellow via-brand-green to-brand-blue" />
+        <h2 className="text-3xl font-bold text-brand-blue mb-6 leading-relaxed" style={{ fontFamily: 'Comic Neue, cursive' }}>{question.teks_pertanyaan}</h2>
         {question.gambar_soal && (
           <img 
             src={question.gambar_soal.startsWith('/') ? `${API_BASE_URL}${question.gambar_soal}` : question.gambar_soal} 
             alt="Soal" 
-            className="mx-auto rounded-xl max-h-64 object-contain" 
+            className="mx-auto rounded-2xl max-h-64 object-contain shadow-md border-4 border-gray-100" 
           />
         )}
-      </div>
+      </motion.div>
 
       {/* Answer Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {question.opsi_jawaban.map((opsi, index) => {
-          let buttonStyle = "bg-white border-4 border-gray-200 text-gray-700 hover:border-brand-blue";
+          let buttonClass = "bg-white border-b-8 border-gray-200 text-gray-700 hover:border-brand-blue hover:-translate-y-1";
           let icon = null;
 
           // Visual Feedback Logic
           if (selectedAnswer !== null) {
             if (index === correctAnswer) {
-              buttonStyle = "bg-green-100 border-4 border-green-500 text-green-800 scale-105";
-              icon = <Check size={32} className="absolute top-4 right-4 text-green-600" />;
+              buttonClass = "bg-green-100 border-b-8 border-green-500 text-green-800 scale-105 shadow-none translate-y-1";
+              icon = <Check size={40} className="absolute top-2 right-2 text-green-600 drop-shadow-sm" />;
             } else if (index === selectedAnswer && index !== correctAnswer) {
-              buttonStyle = "bg-red-100 border-4 border-red-500 text-red-800 shake-animation";
-              icon = <X size={32} className="absolute top-4 right-4 text-red-600" />;
+              buttonClass = "bg-red-100 border-b-8 border-red-500 text-red-800 shadow-none translate-y-1";
+              icon = <X size={40} className="absolute top-2 right-2 text-red-600 drop-shadow-sm" />;
             } else {
-              buttonStyle = "bg-gray-100 border-4 border-transparent text-gray-400 opacity-50";
+              buttonClass = "bg-gray-50 border-gray-200 text-gray-400 opacity-50 cursor-not-allowed";
             }
           }
 
           return (
-            <button
+            <motion.button
               key={index}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={selectedAnswer === null ? { scale: 1.02, rotate: index % 2 === 0 ? 1 : -1 } : {}}
+              whileTap={selectedAnswer === null ? { scale: 0.95 } : {}}
               onClick={() => onAnswer(index)}
               disabled={selectedAnswer !== null}
-              className={`relative p-8 rounded-2xl text-2xl font-bold shadow-lg transition-all transform active:scale-95 flex items-center justify-center min-h-[120px] ${buttonStyle}`}
+              className={`relative p-8 rounded-[2rem] text-2xl font-bold shadow-lg transition-all flex items-center justify-center min-h-[140px] ${buttonClass}`}
             >
               {icon}
               {opsi.gambar ? (
                 <img 
                   src={opsi.gambar.startsWith('/') ? `${API_BASE_URL}${opsi.gambar}` : opsi.gambar} 
                   alt={`Jawaban ${index + 1}`} 
-                  className="h-20 object-contain" 
+                  className="h-24 object-contain hover:scale-110 transition-transform" 
                 />
               ) : (
-                <span>{opsi.teks}</span>
+                <span style={{ fontFamily: 'Comic Neue, cursive' }}>{opsi.teks}</span>
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>

@@ -42,18 +42,31 @@ exports.submitQuiz = async (req, res) => {
             // Check existing history for this Materi (Kuis is linked to Materi)
             const existingEntryIndex = siswa.history.findIndex(h => h.materi.toString() === kuis.materi.toString());
             
+            const attemptData = {
+                skor: starsEarned,
+                tanggal: Date.now()
+            };
+
             if (existingEntryIndex > -1) {
-                // Update only if new score is higher
+                 // Add to detailed history
+                 if (!siswa.history[existingEntryIndex].riwayat_percobaan) {
+                     siswa.history[existingEntryIndex].riwayat_percobaan = [];
+                 }
+                 siswa.history[existingEntryIndex].riwayat_percobaan.push(attemptData);
+ 
+                 // Update MAX score only if new score is higher
                 if (starsEarned > siswa.history[existingEntryIndex].skor) {
                     siswa.history[existingEntryIndex].skor = starsEarned;
-                    siswa.history[existingEntryIndex].tanggal = Date.now();
                 }
+                // Always update last access date
+                siswa.history[existingEntryIndex].tanggal = Date.now();
             } else {
                 // Add new entry
                 siswa.history.push({
                     materi: kuis.materi,
                     skor: starsEarned,
-                    tanggal: Date.now()
+                    tanggal: Date.now(),
+                    riwayat_percobaan: [attemptData]
                 });
             }
             // Recalculate Total Stars (Sum of max score per material)

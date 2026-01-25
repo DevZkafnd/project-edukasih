@@ -5,10 +5,13 @@ const upload = require('../middleware/upload');
 const { protect, teacherOnly } = require('../middleware/authMiddleware');
 
 // GET /api/materi
-router.get('/', materiController.getMaterials);
+router.get('/', protect, materiController.getMaterials);
+
+// DELETE /api/materi/cleanup - Teacher/Admin Only (Place before :id)
+router.delete('/cleanup', protect, teacherOnly, materiController.cleanupLegacyMaterials);
 
 // GET /api/materi/:id
-router.get('/:id', materiController.getMaterialById);
+router.get('/:id', protect, materiController.getMaterialById);
 
 // POST /api/materi (Upload image/video supported) - Protected
 router.post('/', protect, teacherOnly, upload.single('media'), materiController.createMaterial);

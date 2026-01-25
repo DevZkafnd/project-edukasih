@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { AudioContext } from './AudioContextBase';
 
@@ -6,8 +6,13 @@ export const AudioProvider = ({ children }) => {
   const currentAudioRef = useRef(null);
   const lastTextRef = useRef(null);
   const audioUnlockedRef = useRef(false);
+  const queuedAudioRef = useRef(null);
+  const playbackIdRef = useRef(0);
   
-  const stopAll = () => {
+  const stopAll = useCallback(() => {
+    playbackIdRef.current++; // Invalidate pending async playbacks
+    queuedAudioRef.current = null; // Clear queued audio
+    
     // Stop Web Speech API (legacy cleanup)
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -17,9 +22,9 @@ export const AudioProvider = ({ children }) => {
       currentAudioRef.current.pause();
       currentAudioRef.current = null;
     }
-  };
+  }, []);
 
-  const playAudio = (url) => {
+  const playAudio = useCallback((url) => {
     stopAll();
     const audio = new Audio(url);
     audio.preload = 'auto';
@@ -29,14 +34,13 @@ export const AudioProvider = ({ children }) => {
     if (playPromise && typeof playPromise.then === 'function') {
       playPromise.then(() => {
         // Playing started
+        queuedAudioRef.current = null;
       }).catch((e) => {
-        console.warn("Audio auto-play blocked by browser policy (needs interaction):", e.message);
-        if ('speechSynthesis' in window && lastTextRef.current && e && (e.name === 'NotAllowedError' || /not allowed|gesture|user interaction/i.test(e.message || ''))) {
-          const { text, rate } = lastTextRef.current;
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'id-ID';
-          utterance.rate = rate;
-          window.speechSynthesis.speak(utterance);
+        if (e.name === 'NotAllowedError' || /not allowed|gesture|user interaction/i.test(e.message || '')) {
+          console.log("Audio autoplay blocked. Queued for user interaction.");
+          queuedAudioRef.current = url;
+        } else {
+          console.warn("Audio playback failed:", e.message);
         }
       });
     }
@@ -47,7 +51,7 @@ export const AudioProvider = ({ children }) => {
         URL.revokeObjectURL(url);
       }
     };
-  };
+  }, [stopAll]);
 
   // Helper to convert ArrayBuffer to Base64
   const arrayBufferToBase64 = (buffer) => {
@@ -60,8 +64,9 @@ export const AudioProvider = ({ children }) => {
     return window.btoa(binary);
   };
 
-  const playText = async (text, rate = 0.9) => {
+  const playText = useCallback(async (text, rate = 0.9) => {
     stopAll(); // Stop any previous audio first
+    const currentPlaybackId = playbackIdRef.current;
     
     if (!text) return;
 
@@ -71,6 +76,8 @@ export const AudioProvider = ({ children }) => {
       const response = await axios.post('/api/tts/speak', { text }, {
         responseType: 'arraybuffer'
       });
+
+      if (playbackIdRef.current !== currentPlaybackId) return; // Abort if stopped/changed
 
       // Check if response is actually JSON (error) despite requesting arraybuffer
       const contentType = response.headers['content-type'];
@@ -92,6 +99,8 @@ export const AudioProvider = ({ children }) => {
       
       playAudio(audioUrl);
     } catch (error) {
+      if (playbackIdRef.current !== currentPlaybackId) return; // Abort fallback too
+
       console.error("ElevenLabs TTS Error:", error);
       // Fallback to Web Speech API if server fails (e.g. no API key)
       if ('speechSynthesis' in window) {
@@ -102,11 +111,19 @@ export const AudioProvider = ({ children }) => {
         window.speechSynthesis.speak(utterance);
       }
     }
-  };
+  }, [stopAll, playAudio]);
 
   useEffect(() => {
     const unlock = () => {
+      // Try to play queued audio if exists
+      if (queuedAudioRef.current) {
+        const url = queuedAudioRef.current;
+        queuedAudioRef.current = null;
+        playAudio(url);
+      }
+
       if (audioUnlockedRef.current) return;
+      
       const audio = new Audio();
       audio.muted = true;
       const playPromise = audio.play();
@@ -115,21 +132,18 @@ export const AudioProvider = ({ children }) => {
           audio.pause();
           audioUnlockedRef.current = true;
         }).catch(() => {
+          // Still blocked
         });
       } else {
         audioUnlockedRef.current = true;
       }
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('touchstart', unlock);
-      window.removeEventListener('click', unlock);
     };
-    window.addEventListener('pointerdown', unlock);
-    window.addEventListener('touchstart', unlock);
-    window.addEventListener('click', unlock);
+
+    const events = ['pointerdown', 'touchstart', 'click', 'keydown'];
+    events.forEach(event => window.addEventListener(event, unlock));
+
     return () => {
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('touchstart', unlock);
-      window.removeEventListener('click', unlock);
+      events.forEach(event => window.removeEventListener(event, unlock));
     };
   }, []);
 
