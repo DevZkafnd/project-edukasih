@@ -8,29 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check localStorage on mount
-    const storedAuth = localStorage.getItem('auth');
-    if (storedAuth) {
-      const parsed = JSON.parse(storedAuth);
-      
-      // Set header immediately to avoid race conditions
-      if (parsed.token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
-      }
-
-      const id = setTimeout(() => {
-        setUser(parsed.user);
-        setToken(parsed.token);
-        setLoading(false);
-      }, 0);
-      return () => clearTimeout(id);
-    } else {
-      const id = setTimeout(() => setLoading(false), 0);
-      return () => clearTimeout(id);
-    }
-  }, []);
-
-  useEffect(() => {
     // Interceptor untuk menangkap error 401 global
     const interceptor = axios.interceptors.response.use(
       (response) => response,
@@ -42,6 +19,46 @@ export const AuthProvider = ({ children }) => {
         return Promise.reject(error);
       }
     );
+
+    // Initial Auth Check
+    const initAuth = async () => {
+      const storedAuth = localStorage.getItem('auth');
+      if (storedAuth) {
+        try {
+          const parsed = JSON.parse(storedAuth);
+          if (parsed.token) {
+            // Set header default
+            axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
+            
+            // Verify with Server (PENTING: Agar tidak terpental jika local data stale)
+            // Kita coba fetch /api/auth/me. 
+            // Jika sukses, update user. Jika 401, interceptor di atas akan handle logout.
+            // Jika network error, kita gunakan data local sementara (Optimistic).
+            try {
+              const res = await axios.get('/api/auth/me');
+              setUser(res.data);
+              setToken(parsed.token);
+              // Update local storage agar fresh
+              localStorage.setItem('auth', JSON.stringify({ user: res.data, token: parsed.token }));
+            } catch (err) {
+              console.warn("Auth verification failed (using local data):", err);
+              // Fallback ke data local jika bukan 401 (misal offline)
+              if (!err.response || err.response.status !== 401) {
+                 setUser(parsed.user);
+                 setToken(parsed.token);
+              }
+              // Jika 401, interceptor sudah handle logout()
+            }
+          }
+        } catch (e) {
+          console.error("Auth init error:", e);
+          localStorage.removeItem('auth');
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
 
     return () => {
       axios.interceptors.response.eject(interceptor);

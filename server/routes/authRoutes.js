@@ -5,6 +5,7 @@ const { protect, adminOnly, teacherOnly } = require('../middleware/authMiddlewar
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.get('/me', protect, authController.getMe);
 
 // Admin Only: Manage Teachers
 router.get('/teachers', protect, adminOnly, authController.getAllTeachers);

@@ -1,36 +1,23 @@
 #!/bin/bash
 
-# ==================================================
-# EduKasih Cron Job Installer
-# ==================================================
-# Script ini akan mendaftarkan maintenance.sh ke jadwal otomatis VPS.
-# Jadwal: Setiap Hari Minggu, Pukul 00:00 (Tengah Malam)
+# Script ini akan mendaftarkan maintenance.sh ke Crontab (Jadwal Otomatis)
+# Jalankan sekali saja di awal setup.
 
-# 1. Pastikan script maintenance executable
 chmod +x maintenance.sh
 
-# 2. Dapatkan absolute path dari script
-SCRIPT_PATH=$(pwd)/maintenance.sh
+# Dapatkan path absolut project
+PROJECT_DIR=$(pwd)
+SCRIPT_PATH="$PROJECT_DIR/maintenance.sh"
+LOG_PATH="$PROJECT_DIR/maintenance.log"
 
-# 3. Cek apakah cron job sudah ada
-crontab -l | grep "maintenance.sh" > /dev/null
+# Cek apakah sudah ada di crontab
+crontab -l | grep -q "maintenance.sh"
 
 if [ $? -eq 0 ]; then
-    echo "✅ Jadwal maintenance sudah terdaftar sebelumnya."
-    echo "Cek dengan perintah: crontab -l"
+    echo "✅ Jadwal maintenance sudah ada di crontab."
 else
-    # 4. Tambahkan jadwal baru
-    # Format Cron: m h dom mon dow command
-    # 0 0 * * 0 = Menit 0, Jam 0, Setiap Tgl, Setiap Bulan, Hari Minggu (0)
-    
-    # Kita tambahkan TZ=Asia/Jakarta di baris cron jika sistem mendukung, 
-    # tapi untuk kompatibilitas, kita asumsikan server time atau user menyesuaikan.
-    # Jika server UTC, 00:00 WIB = 17:00 UTC (Sabtu).
-    # Agar aman, kita set jam 00:00 waktu server.
-    
-    (crontab -l 2>/dev/null; echo "0 0 * * 0 $SCRIPT_PATH >> $(pwd)/maintenance.log 2>&1") | crontab -
-    
-    echo "🎉 Berhasil!"
-    echo "Script maintenance akan berjalan otomatis setiap Hari Minggu jam 00:00 waktu server."
-    echo "Log aktivitas akan disimpan di: $(pwd)/maintenance.log"
+    # Tambahkan jadwal: Setiap Senin jam 3 pagi
+    (crontab -l 2>/dev/null; echo "0 3 * * 1 cd $PROJECT_DIR && ./maintenance.sh >> $LOG_PATH 2>&1") | crontab -
+    echo "🎉 Berhasil menambahkan jadwal maintenance (Setiap Senin 03:00)."
+    echo "Logs akan disimpan di: $LOG_PATH"
 fi

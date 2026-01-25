@@ -1,41 +1,31 @@
 #!/bin/bash
 
-# ==================================================
-# Script Pemeliharaan Otomatis EduKasih (VPS Optimizer)
-# ==================================================
-# Gunakan script ini untuk membersihkan cache dan menjaga VPS tetap sehat.
-# Cara pakai: chmod +x maintenance.sh -> ./maintenance.sh
+# Script Perawatan Berkala EduKasih (Jalankan Weekly)
+# Lokasi: di root project folder
 
-echo "[$(date)] Memulai proses pemeliharaan sistem..."
+echo "=== [$(date)] Mulai Maintenance ==="
 
-# 1. Bersihkan Docker System (Image tidak terpakai, Container stop, Cache build)
-# PENTING: Kami TIDAK menggunakan flag --volumes agar data database (MongoDB) AMAN.
-# -a: Hapus semua unused images (bukan hanya dangling)
-# -f: Force (tanpa konfirmasi)
-echo "-> Membersihkan Docker System (Images & Build Cache)..."
-docker system prune -af
+# 1. Perbarui SSL Certificate (Jika < 30 hari expired)
+echo "1. Cek & Renew SSL..."
+docker compose run --rm certbot renew
 
-# Bersihkan build cache secara spesifik (sering memakan tempat)
-docker builder prune -f
+# 2. Reload Nginx agar sertifikat baru terbaca
+echo "2. Reload Nginx..."
+docker compose exec nginx nginx -s reload
 
-# 2. Rotasi Log Docker (Jika ada yang terlewat dari setting docker-compose)
-# Catatan: docker-compose.yml sudah diset max-size, tapi ini double check
-echo "-> Mengecek log container..."
-# (Opsional: truncate manual jika diperlukan, tapi setting docker-compose lebih aman)
+# 3. Bersihkan Docker System (Hemat Space)
+# Hapus image/container/network yg tidak terpakai
+echo "3. Cleaning Up Docker Garbage..."
+docker system prune -f
 
-# 3. Bersihkan file temporary di Server (Uploads yang gagal/sampah)
-# Hapus file di folder uploads/temp yang lebih tua dari 7 hari
-UPLOAD_TEMP_DIR="./server/uploads/temp"
-if [ -d "$UPLOAD_TEMP_DIR" ]; then
-    echo "-> Membersihkan file temporary upload (> 7 hari)..."
-    find "$UPLOAD_TEMP_DIR" -type f -mtime +7 -delete
-fi
+# 4. (Opsional) Backup Database
+echo "4. Backup Database..."
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_DIR="./backups/mongo"
+mkdir -p $BACKUP_DIR
+docker compose exec mongo mongodump --out /dump
+docker cp edukasih_mongo:/dump $BACKUP_DIR/$TIMESTAMP
+# Hapus backup > 30 hari
+find $BACKUP_DIR -type d -mtime +30 -exec rm -rf {} +
 
-# 4. Git Garbage Collection (Optimasi ukuran folder .git)
-if [ -d ".git" ]; then
-    echo "-> Optimasi Git Repository..."
-    git gc --auto
-fi
-
-echo "[$(date)] Pemeliharaan selesai! VPS Anda sekarang lebih lega."
-echo "=================================================="
+echo "=== [$(date)] Selesai ==="

@@ -94,6 +94,25 @@ exports.login = async (req, res) => {
   }
 };
 
+// Get Current User (Me)
+exports.getMe = async (req, res) => {
+  try {
+    const user = await Siswa.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+    res.json({
+      id: user._id,
+      nama: user.nama,
+      username: user.username,
+      role: user.role,
+      nama_orang_tua: user.nama_orang_tua
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 // Get All Students (For Teacher Dashboard)
 exports.getAllStudents = async (req, res) => {
   try {
