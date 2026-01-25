@@ -51,8 +51,13 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443" # Tambahan untuk HTTPS
     depends_on:
       - server
+    volumes:
+      - ./nginx-conf:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     logging:
       driver: "json-file"
       options:
@@ -62,6 +67,13 @@ services:
       resources:
         limits:
           memory: 256M
+
+  certbot:
+    image: certbot/certbot
+    container_name: edukasih-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
 
 
 volumes:
