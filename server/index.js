@@ -20,6 +20,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust Proxy (Penting karena kita berjalan di belakang Nginx)
+// Agar req.ip terbaca benar (IP asli user, bukan IP Nginx)
+app.set('trust proxy', 1);
+
 // Enable CORS with broad permissions for debugging
 // origin: true reflects the request origin, effectively allowing all origins while supporting credentials
 const corsOptions = {
