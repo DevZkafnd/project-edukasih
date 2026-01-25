@@ -31,6 +31,24 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    // Interceptor untuk menangkap error 401 global
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          // Jika token expired/invalid, logout otomatis
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, []);
+
+  useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
