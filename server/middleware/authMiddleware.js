@@ -4,13 +4,18 @@ const protect = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization || '';
         const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        
         if (!token) {
+            console.log('[AUTH_FAIL] No token provided for:', req.originalUrl);
             return res.status(401).json({ message: 'Tidak ada token' });
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+
+        const secret = process.env.JWT_SECRET || 'dev_secret';
+        const decoded = jwt.verify(token, secret);
         req.user = decoded;
         next();
     } catch (err) {
+        console.log('[AUTH_FAIL] Invalid token:', err.message, 'for:', req.originalUrl);
         return res.status(401).json({ message: 'Token tidak valid' });
     }
 };

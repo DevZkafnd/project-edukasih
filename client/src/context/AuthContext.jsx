@@ -8,12 +8,13 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Ref untuk melacak aktivitas terakhir user (timestamp)
-  const lastActivityRef = useRef(Date.now());
+  // Ref untuk menyimpan token terbaru (untuk menghindari masalah closure/stale state di interceptor)
+  const tokenRef = useRef(null);
 
   const login = (userData, tokenData) => {
     setUser(userData);
     setToken(tokenData);
+    tokenRef.current = tokenData; // Sync Ref
     localStorage.setItem('auth', JSON.stringify({ user: userData, token: tokenData }));
     lastActivityRef.current = Date.now(); // Reset timer saat login
   };
@@ -22,9 +23,13 @@ export const AuthProvider = ({ children }) => {
     toast.dismiss(); // Hapus semua toast saat logout
     setUser(null);
     setToken(null);
+    tokenRef.current = null; // Sync Ref
     localStorage.removeItem('auth');
   };
 
+  // Ref untuk melacak aktivitas terakhir user (timestamp)
+  const lastActivityRef = useRef(Date.now());
+  
   // Logika Auto Logout jika idle 1 jam (3600000 ms)
   useEffect(() => {
     if (!token) return;
@@ -57,83 +62,75 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
 
+  // 1. Setup Interceptors (Hanya sekali saat mount)
   useEffect(() => {
-    // Interceptor untuk menangkap error 401 global
-    const interceptor = axios.interceptors.response.use(
+    // A. Request Interceptor: Selalu pasang token terbaru
+    const reqInterceptor = axios.interceptors.request.use(
+      (config) => {
+        // Cek token dari Ref (paling update) atau LocalStorage (fallback)
+        let activeToken = tokenRef.current;
+        if (!activeToken) {
+           try {
+             const stored = JSON.parse(localStorage.getItem('auth') || '{}');
+             activeToken = stored.token;
+           } catch (e) {}
+        }
+
+        if (activeToken) {
+          config.headers.Authorization = `Bearer ${activeToken}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // B. Response Interceptor: Handle 401
+    const resInterceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
-          // Jika token expired/invalid, logout otomatis
-          logout();
+          console.warn("Unauthorized access detected.");
+          // PENTING: Jangan langsung logout otomatis untuk menghindari "kick" saat refresh.
+          // Cukup biarkan request gagal. Logout hanya dilakukan jika user benar-benar idle
+          // atau klik tombol logout.
+          // logout(); <--- DIBATALKAN DEMI UX
         }
         return Promise.reject(error);
       }
     );
 
-    // Initial Auth Check
+    return () => {
+      axios.interceptors.request.eject(reqInterceptor);
+      axios.interceptors.response.eject(resInterceptor);
+    };
+  }, []);
+
+  // 2. Initial Auth Load
+  useEffect(() => {
     const initAuth = async () => {
       const storedAuth = localStorage.getItem('auth');
       if (storedAuth) {
         try {
           const parsed = JSON.parse(storedAuth);
           if (parsed.token && parsed.user) {
-            // 1. Set Header Axios SEGERA
-            axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
-            
-            // 2. Restore State dari LocalStorage (Trust LocalStorage First)
-            // Kita tidak melakukan verifikasi ke server di sini untuk menghindari
-            // race condition atau error 401 palsu yang menyebabkan logout loop.
-            // Verifikasi token akan terjadi secara alami saat halaman dashboard 
-            // melakukan request data.
+            // Restore State
             setUser(parsed.user);
             setToken(parsed.token);
+            tokenRef.current = parsed.token; // PENTING: Update Ref segera
+            
+            // Set Default Header (Backup)
+            axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
           }
         } catch (e) {
           console.error("Auth init error:", e);
-          // Jangan hapus auth dulu jika error parsing, siapa tahu glitch sesaat
         }
       }
       setLoading(false);
     };
 
     initAuth();
-
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
   }, []);
 
-  useEffect(() => {
-    const requestInterceptor = axios.interceptors.request.use((config) => {
-      let storedToken = token;
-      if (!storedToken) {
-        try {
-          const raw = localStorage.getItem('auth');
-          const parsed = raw ? JSON.parse(raw) : null;
-          storedToken = parsed?.token || null;
-        } catch (e) {
-          storedToken = null;
-        }
-      }
-      if (storedToken) {
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${storedToken}`;
-      }
-      return config;
-    });
-
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-    };
-  }, [token]);
-
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [token]);
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, loading }}>
