@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { AuthContext } from './AuthContextBase';
@@ -8,10 +8,14 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Ref untuk melacak aktivitas terakhir user (timestamp)
+  const lastActivityRef = useRef(Date.now());
+
   const login = (userData, tokenData) => {
     setUser(userData);
     setToken(tokenData);
     localStorage.setItem('auth', JSON.stringify({ user: userData, token: tokenData }));
+    lastActivityRef.current = Date.now(); // Reset timer saat login
   };
 
   const logout = () => {
@@ -20,6 +24,38 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('auth');
   };
+
+  // Logika Auto Logout jika idle 1 jam (3600000 ms)
+  useEffect(() => {
+    if (!token) return;
+
+    // Fungsi update timestamp aktivitas (di-throttle agar ringan)
+    const handleActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    // Event listener untuk berbagai interaksi user
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    events.forEach(event => window.addEventListener(event, handleActivity));
+
+    // Cek setiap 1 menit apakah user sudah idle > 1 jam
+    const intervalId = setInterval(() => {
+      const now = Date.now();
+      const idleTime = now - lastActivityRef.current;
+      const MAX_IDLE_TIME = 3600000; // 1 Jam
+
+      if (idleTime > MAX_IDLE_TIME) {
+        logout();
+        toast.error("Sesi berakhir karena tidak ada aktivitas selama 1 jam.", { duration: 6000 });
+      }
+    }, 60000); // Cek tiap 60 detik
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, handleActivity));
+      clearInterval(intervalId);
+    };
+  }, [token]);
+
 
   useEffect(() => {
     // Interceptor untuk menangkap error 401 global
