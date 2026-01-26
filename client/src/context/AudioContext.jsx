@@ -74,7 +74,10 @@ export const AudioProvider = ({ children }) => {
 
     try {
       const response = await axios.post('/api/tts/speak', { text }, {
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       if (playbackIdRef.current !== currentPlaybackId) return; // Abort if stopped/changed

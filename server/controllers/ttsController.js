@@ -21,6 +21,7 @@ exports.speak = async (req, res) => {
     const { text } = req.body;
 
     if (!text) {
+      console.error('[TTS_ERROR] Request received but "text" is missing. Body:', req.body);
       return res.status(400).json({ message: 'Text is required' });
     }
 

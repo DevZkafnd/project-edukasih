@@ -53,6 +53,15 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: '100mb' }));
+// Handle JSON Parse Errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('[JSON_PARSE_ERROR] Invalid JSON received:', err.message);
+    return res.status(400).json({ message: 'Invalid JSON format' });
+  }
+  next();
+});
+
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Connect Database with Middleware for Vercel
