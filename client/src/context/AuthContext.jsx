@@ -80,26 +80,17 @@ export const AuthProvider = ({ children }) => {
             // 1. Set Header Axios SEGERA
             axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
             
-            // 2. Restore State dari LocalStorage (Percaya LocalStorage dulu agar UX cepat & tidak mental)
+            // 2. Restore State dari LocalStorage (Trust LocalStorage First)
+            // Kita tidak melakukan verifikasi ke server di sini untuk menghindari
+            // race condition atau error 401 palsu yang menyebabkan logout loop.
+            // Verifikasi token akan terjadi secara alami saat halaman dashboard 
+            // melakukan request data.
             setUser(parsed.user);
             setToken(parsed.token);
-            
-            // 3. Opsional: Verifikasi Token di Background (Silent)
-            // Kita tidak await ini agar loading cepat selesai.
-            // Jika token invalid (401), interceptor global akan menangkapnya nanti saat user interaksi.
-            // Atau kita bisa lakukan cek silent tanpa memblokir UI.
-            axios.get('/api/auth/me').then(res => {
-               // Update data user terbaru jika ada perubahan di server
-               setUser(res.data);
-               localStorage.setItem('auth', JSON.stringify({ user: res.data, token: parsed.token }));
-            }).catch(err => {
-               console.warn("Silent auth check failed:", err.message);
-               // Jangan logout di sini, biarkan interceptor global yang bekerja jika benar-benar 401
-            });
           }
         } catch (e) {
           console.error("Auth init error:", e);
-          localStorage.removeItem('auth');
+          // Jangan hapus auth dulu jika error parsing, siapa tahu glitch sesaat
         }
       }
       setLoading(false);
