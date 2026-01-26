@@ -1,4 +1,5 @@
 const Siswa = require('../models/Siswa');
+const Materi = require('../models/Materi');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -12,6 +13,44 @@ const checkDB = (res) => {
     });
   }
   return null;
+};
+
+// Helper to cleanup student history
+const cleanupStudentHistory = async (student) => {
+  if (!student.history || student.history.length === 0) {
+      if (student.skor_bintang !== 0) {
+          student.skor_bintang = 0;
+          await student.save();
+      }
+      return student;
+  }
+
+  const originalLength = student.history.length;
+  
+  // Filter out any corrupt entries first (missing materi field)
+  const validStructureHistory = student.history.filter(h => h && h.materi);
+
+  // Get IDs safely
+  const historyMateriIds = validStructureHistory.map(h => (h.materi._id || h.materi).toString());
+  
+  // Find valid materials in DB
+  const validMaterials = await Materi.find({ _id: { $in: historyMateriIds } }).select('_id');
+  const validMaterialIds = new Set(validMaterials.map(m => m._id.toString()));
+
+  // Filter history: keep only entries where material exists
+  const newHistory = validStructureHistory.filter(h => validMaterialIds.has((h.materi._id || h.materi).toString()));
+
+  // Recalculate stars
+  const newTotalStars = newHistory.reduce((acc, curr) => acc + curr.skor, 0);
+
+  // Check if changes needed
+  if (originalLength !== newHistory.length || student.skor_bintang !== newTotalStars) {
+      student.history = newHistory;
+      student.skor_bintang = newTotalStars;
+      await student.save();
+      console.log(`[Auto-Fix] Corrected stats for student ${student.username}: Stars ${newTotalStars}, History Items ${newHistory.length}`);
+  }
+  return student;
 };
 
 // Register (Untuk Guru membuatkan akun Siswa, atau Register Mandiri)
@@ -97,10 +136,16 @@ exports.login = async (req, res) => {
 // Get Current User (Me)
 exports.getMe = async (req, res) => {
   try {
-    const user = await Siswa.findById(req.user.id).select('-password');
+    let user = await Siswa.findById(req.user.id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
     }
+
+    // Auto-cleanup for students
+    if (user.role === 'siswa') {
+        user = await cleanupStudentHistory(user);
+    }
+
     res.json({
       id: user._id,
       nama: user.nama,
@@ -117,7 +162,11 @@ exports.getMe = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await Siswa.find({ role: 'siswa' }).select('-password');
-    res.json(students);
+    
+    // Parallel cleanup for all students to ensure Teacher sees correct data
+    const cleanedStudents = await Promise.all(students.map(s => cleanupStudentHistory(s)));
+    
+    res.json(cleanedStudents);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

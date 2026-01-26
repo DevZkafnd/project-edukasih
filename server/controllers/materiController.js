@@ -1,5 +1,6 @@
 const Materi = require('../models/Materi');
 const Kuis = require('../models/Kuis');
+const Siswa = require('../models/Siswa');
 const fs = require('fs');
 const path = require('path');
 
@@ -219,10 +220,16 @@ exports.deleteMaterial = async (req, res) => {
     // 3. Delete Associated Quiz
     await Kuis.deleteMany({ materi: id });
 
-    // 4. Delete Materi
+    // 4. Remove this material from ALL students' history to fix "Materi Selesai" count
+    await Siswa.updateMany(
+      { "history.materi": id },
+      { $pull: { history: { materi: id } } }
+    );
+
+    // 5. Delete Materi
     await Materi.findByIdAndDelete(id);
 
-    res.json({ message: 'Materi dan kuis terkait berhasil dihapus' });
+    res.json({ message: 'Materi, kuis, dan riwayat terkait berhasil dihapus' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
