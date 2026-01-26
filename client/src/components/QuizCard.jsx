@@ -17,7 +17,7 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
         <h2 className="text-3xl font-bold text-brand-blue mb-6 leading-relaxed" style={{ fontFamily: 'Comic Neue, cursive' }}>{question.teks_pertanyaan}</h2>
         {question.gambar_soal && (
           <img 
-            src={question.gambar_soal.startsWith('/') ? `${API_BASE_URL}${question.gambar_soal}` : question.gambar_soal} 
+            src={question.gambar_soal.startsWith('/') ? `${API_BASE_URL}${question.gambar_soal}` : `${API_BASE_URL}/${question.gambar_soal}`} 
             alt="Soal" 
             className="mx-auto rounded-2xl max-h-64 object-contain shadow-md border-4 border-gray-100" 
           />
@@ -58,7 +58,7 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
               {icon}
               {opsi.gambar ? (
                 <img 
-                  src={opsi.gambar.startsWith('/') ? `${API_BASE_URL}${opsi.gambar}` : opsi.gambar} 
+                  src={opsi.gambar.startsWith('/') ? `${API_BASE_URL}${opsi.gambar}` : `${API_BASE_URL}/${opsi.gambar}`} 
                   alt={`Jawaban ${index + 1}`} 
                   className="h-24 object-contain hover:scale-110 transition-transform" 
                 />

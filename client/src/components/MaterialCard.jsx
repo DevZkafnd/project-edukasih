@@ -12,7 +12,9 @@ const MaterialCard = ({ materi, index = 0 }) => {
       const id = match && match[2] && match[2].length === 11 ? match[2] : null;
       return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : 'https://placehold.co/600x400?text=Video';
     } else {
-      return `${API_BASE_URL}${url}`;
+      // Ensure URL is absolute path if it's a local file
+      const safeUrl = url.startsWith('/') ? url : `/${url}`;
+      return `${API_BASE_URL}${safeUrl}`;
     }
   };
 
@@ -57,7 +59,7 @@ const MaterialCard = ({ materi, index = 0 }) => {
           {materi.tipe_media === 'video_lokal' ? (
             <video
               ref={videoRef}
-              src={`${API_BASE_URL}${materi.url_media}`}
+              src={`${API_BASE_URL}${materi.url_media.startsWith('/') ? materi.url_media : '/' + materi.url_media}`}
               className="w-full h-full object-cover"
               preload="metadata"
               muted
