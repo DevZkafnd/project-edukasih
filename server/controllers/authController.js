@@ -136,22 +136,27 @@ exports.login = async (req, res) => {
 // Get Current User (Me)
 exports.getMe = async (req, res) => {
   try {
-    let user = await Siswa.findById(req.user.id).select('-password');
+    // Load FULL user first (including password) to allow .save()
+    let user = await Siswa.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
     }
 
     // Auto-cleanup for students
     if (user.role === 'siswa') {
-        user = await cleanupStudentHistory(user);
+        await cleanupStudentHistory(user);
     }
 
+    // Prepare response
+    const userObj = user.toObject();
+    delete userObj.password;
+
     res.json({
-      id: user._id,
-      nama: user.nama,
-      username: user.username,
-      role: user.role,
-      nama_orang_tua: user.nama_orang_tua
+      id: userObj._id,
+      nama: userObj.nama,
+      username: userObj.username,
+      role: userObj.role,
+      nama_orang_tua: userObj.nama_orang_tua
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -161,10 +166,18 @@ exports.getMe = async (req, res) => {
 // Get All Students (For Teacher Dashboard)
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await Siswa.find({ role: 'siswa' }).select('-password');
+    // Load FULL docs to allow .save() inside cleanup
+    const students = await Siswa.find({ role: 'siswa' });
     
-    // Parallel cleanup for all students to ensure Teacher sees correct data
-    const cleanedStudents = await Promise.all(students.map(s => cleanupStudentHistory(s)));
+    // Parallel cleanup
+    await Promise.all(students.map(s => cleanupStudentHistory(s)));
+    
+    // Remove passwords for response
+    const cleanedStudents = students.map(s => {
+        const obj = s.toObject();
+        delete obj.password;
+        return obj;
+    });
     
     res.json(cleanedStudents);
   } catch (error) {
