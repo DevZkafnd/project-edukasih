@@ -36,6 +36,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // app.options('*', cors(corsOptions)); // Preflight handled by app.use(cors()) usually, or remove explicit * if causing path-to-regexp error in this environment
 
+// Debug Route to check Headers & IP
+app.get('/api/debug/headers', (req, res) => {
+  res.json({
+    ip: req.ip,
+    ips: req.ips,
+    headers: req.headers,
+    protocol: req.protocol,
+    secure: req.secure
+  });
+});
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
