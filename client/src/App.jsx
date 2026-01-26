@@ -20,7 +20,18 @@ function App() {
     <AuthProvider>
       <AudioProvider>
         <Router>
-          <Toaster position="top-center" reverseOrder={false} />
+          <Toaster 
+            position="top-center" 
+            reverseOrder={false} 
+            toastOptions={{
+              duration: 5000,
+              style: {
+                background: '#333',
+                color: '#fff',
+                zIndex: 9999,
+              },
+            }} 
+          />
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />

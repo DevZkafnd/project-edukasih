@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    toast.dismiss(); // Hapus semua toast saat logout
     setUser(null);
     setToken(null);
     localStorage.removeItem('auth');
