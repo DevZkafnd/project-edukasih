@@ -7,6 +7,18 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const login = (userData, tokenData) => {
+    setUser(userData);
+    setToken(tokenData);
+    localStorage.setItem('auth', JSON.stringify({ user: userData, token: tokenData }));
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('auth');
+  };
+
   useEffect(() => {
     // Interceptor untuk menangkap error 401 global
     const interceptor = axios.interceptors.response.use(
@@ -66,24 +78,36 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    const requestInterceptor = axios.interceptors.request.use((config) => {
+      let storedToken = token;
+      if (!storedToken) {
+        try {
+          const raw = localStorage.getItem('auth');
+          const parsed = raw ? JSON.parse(raw) : null;
+          storedToken = parsed?.token || null;
+        } catch (e) {
+          storedToken = null;
+        }
+      }
+      if (storedToken) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${storedToken}`;
+      }
+      return config;
+    });
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
+  }, [token]);
+
+  useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       delete axios.defaults.headers.common['Authorization'];
     }
   }, [token]);
-
-  const login = (userData, tokenData) => {
-    setUser(userData);
-    setToken(tokenData);
-    localStorage.setItem('auth', JSON.stringify({ user: userData, token: tokenData }));
-  };
-
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('auth');
-  };
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, loading }}>
