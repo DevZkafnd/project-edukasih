@@ -44,8 +44,6 @@ services:
   client:
     build: 
       context: ./client
-      args:
-        - VITE_API_URL=/ 
     container_name: edukasih_client
     restart: always
     networks:
