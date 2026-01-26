@@ -25,7 +25,7 @@ const QuizEditorPage = () => {
         if (quizRes.data && quizRes.data.pertanyaan) {
           const loadedQuestions = quizRes.data.pertanyaan.map(q => ({
             ...q,
-            tipe_media: q.gambar_soal && !q.gambar_soal.startsWith('/uploads') ? 'link' : 'upload'
+            tipe_media: q.gambar_soal && !(q.gambar_soal.startsWith('/uploads') || q.gambar_soal.startsWith('uploads/')) ? 'link' : 'upload'
           }));
           setQuestions(loadedQuestions);
         }
@@ -258,7 +258,7 @@ const QuizEditorPage = () => {
                     <div className="mt-3">
                         <p className="text-xs text-gray-500 mb-1">Preview:</p>
                         <img 
-                            src={q.gambar_soal.startsWith('/') ? `${API_BASE_URL}${q.gambar_soal}` : q.gambar_soal} 
+                            src={q.gambar_soal.startsWith('http') ? q.gambar_soal : `${API_BASE_URL}${q.gambar_soal.startsWith('/') ? q.gambar_soal : `/${q.gambar_soal}`}`} 
                             alt="Preview Soal" 
                             className="h-32 object-contain rounded-md border bg-white"
                             onError={(e) => e.target.style.display = 'none'} 

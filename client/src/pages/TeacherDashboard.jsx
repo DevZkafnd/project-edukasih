@@ -67,6 +67,13 @@ const TeacherDashboard = () => {
     if (match && match[2] && match[2].length === 11) return match[2];
     return null;
   };
+  
+  const normalizeMediaUrl = (url) => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    const withSlash = url.startsWith('/') ? url : `/${url}`;
+    return `${API_BASE_URL}${withSlash}`;
+  };
 
   const filteredMaterials = useMemo(() => {
     let list = materials;
@@ -165,7 +172,7 @@ const TeacherDashboard = () => {
     const toastId = toast.loading(isEdit ? 'Menyimpan perubahan...' : 'Sedang mengupload...');
 
     try {
-      const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB Limit
+      const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
       if (formData.tipe_media === 'video_youtube') {
         const vid = getYoutubeId(formData.url_media);
         if (!vid) {
@@ -183,7 +190,7 @@ const TeacherDashboard = () => {
             return;
           }
           if (file.size > MAX_VIDEO_SIZE) {
-            toast.error(`Ukuran video terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 50MB.`, { id: toastId });
+            toast.error(`Ukuran video terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 100MB.`, { id: toastId });
             return;
           }
         }
@@ -194,8 +201,8 @@ const TeacherDashboard = () => {
       data.append('tipe_media', formData.tipe_media);
       data.append('panduan_ortu', formData.panduan_ortu);
       // Validasi Ukuran File (Max 25MB)
-      if (file && file.size > 25 * 1024 * 1024) {
-        toast.error('Ukuran file terlalu besar! Maksimal 25MB.', { id: toastId });
+      if (file && file.size > 100 * 1024 * 1024) {
+        toast.error('Ukuran file terlalu besar! Maksimal 100MB.', { id: toastId });
         return;
       }
 
@@ -604,7 +611,7 @@ const TeacherDashboard = () => {
                                         })()
                                     ) : m.tipe_media === 'video_lokal' ? (
                                         <video
-                                          src={`${API_BASE_URL}${m.url_media}`}
+                                          src={normalizeMediaUrl(m.url_media)}
                                           className="w-full h-full object-cover"
                                           preload="metadata"
                                           muted
@@ -615,7 +622,7 @@ const TeacherDashboard = () => {
                                         />
                                     ) : (
                                         <img
-                                          src={`${API_BASE_URL}${m.url_media}`}
+                                          src={normalizeMediaUrl(m.url_media)}
                                           alt={m.judul}
                                           className="w-full h-full object-cover"
                                           onError={(e) => e.target.src = 'https://placehold.co/600x400?text=Gambar'}

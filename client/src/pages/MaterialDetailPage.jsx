@@ -46,6 +46,13 @@ const MaterialDetailPage = () => {
   if (loading) return <div className="p-10 text-center font-comic">Memuat...</div>;
   if (!materi) return <div className="p-10 text-center font-comic">Materi tidak ditemukan.</div>;
 
+  const normalizeMediaUrl = (url) => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    const withSlash = url.startsWith('/') ? url : `/${url}`;
+    return `${API_BASE_URL}${withSlash}`;
+  };
+
   const isVokasi = materi.kategori === 'vokasi' || materi.kategori === 'lifeskill';
 
   return (
@@ -83,7 +90,7 @@ const MaterialDetailPage = () => {
         ) : (materi.tipe_media === 'video_lokal' || /\.(mp4|mkv|avi|webm)$/i.test(materi.url_media)) ? (
            <div className="rounded-2xl overflow-hidden shadow-lg border-4 border-brand-blue bg-black">
               <video 
-                src={`${API_BASE_URL}${materi.url_media}`} 
+                src={normalizeMediaUrl(materi.url_media)} 
                 controls 
                 className="w-full h-auto aspect-video"
               >
@@ -92,7 +99,7 @@ const MaterialDetailPage = () => {
            </div>
         ) : (
            <div className="rounded-2xl overflow-hidden shadow-lg border-4 border-brand-blue">
-              <img src={`${API_BASE_URL}${materi.url_media}`} alt={materi.judul} className="w-full object-cover" />
+              <img src={normalizeMediaUrl(materi.url_media)} alt={materi.judul} className="w-full object-cover" />
            </div>
         )}
 
