@@ -28,9 +28,8 @@ function App() {
               style: {
                 background: '#333',
                 color: '#fff',
-                zIndex: 9999,
               },
-            }} 
+            }}
           />
           <Routes>
             <Route path="/" element={<RootRedirect />} />
