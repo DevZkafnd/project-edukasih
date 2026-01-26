@@ -76,29 +76,26 @@ export const AuthProvider = ({ children }) => {
       if (storedAuth) {
         try {
           const parsed = JSON.parse(storedAuth);
-          if (parsed.token) {
-            // Set header default
+          if (parsed.token && parsed.user) {
+            // 1. Set Header Axios SEGERA
             axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
             
-            // Verify with Server (PENTING: Agar tidak terpental jika local data stale)
-            // Kita coba fetch /api/auth/me. 
-            // Jika sukses, update user. Jika 401, interceptor di atas akan handle logout.
-            // Jika network error, kita gunakan data local sementara (Optimistic).
-            try {
-              const res = await axios.get('/api/auth/me');
-              setUser(res.data);
-              setToken(parsed.token);
-              // Update local storage agar fresh
-              localStorage.setItem('auth', JSON.stringify({ user: res.data, token: parsed.token }));
-            } catch (err) {
-              console.warn("Auth verification failed (using local data):", err);
-              // Fallback ke data local jika bukan 401 (misal offline)
-              if (!err.response || err.response.status !== 401) {
-                 setUser(parsed.user);
-                 setToken(parsed.token);
-              }
-              // Jika 401, interceptor sudah handle logout()
-            }
+            // 2. Restore State dari LocalStorage (Percaya LocalStorage dulu agar UX cepat & tidak mental)
+            setUser(parsed.user);
+            setToken(parsed.token);
+            
+            // 3. Opsional: Verifikasi Token di Background (Silent)
+            // Kita tidak await ini agar loading cepat selesai.
+            // Jika token invalid (401), interceptor global akan menangkapnya nanti saat user interaksi.
+            // Atau kita bisa lakukan cek silent tanpa memblokir UI.
+            axios.get('/api/auth/me').then(res => {
+               // Update data user terbaru jika ada perubahan di server
+               setUser(res.data);
+               localStorage.setItem('auth', JSON.stringify({ user: res.data, token: parsed.token }));
+            }).catch(err => {
+               console.warn("Silent auth check failed:", err.message);
+               // Jangan logout di sini, biarkan interceptor global yang bekerja jika benar-benar 401
+            });
           }
         } catch (e) {
           console.error("Auth init error:", e);
