@@ -68,7 +68,7 @@ exports.getMaterials = async (req, res) => {
                  query = {
                     $or: [
                         { jenjang: targetJenjang },
-                        { jenjang: studentJenjang }, // Include original jenjang for teacher view too
+                        { jenjang: studentJenjang },
                         { siswa: siswa }
                     ]
                 };

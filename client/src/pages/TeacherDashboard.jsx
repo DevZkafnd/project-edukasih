@@ -8,6 +8,7 @@ import useAudio from '../hooks/useAudio';
 import { API_BASE_URL } from '../config';
 import Logo from '../components/Logo';
 import DocumentPreviewModal from '../components/DocumentPreviewModal';
+import PPTXPreview from '../components/PPTXPreview';
 
 const SidebarItem = ({ label, iconEl, active, onClick }) => (
   <button
@@ -1191,6 +1192,19 @@ const TeacherDashboard = () => {
                         {formData.tipe_media === 'video_lokal' && (
                           <p className="text-xs text-gray-500 mt-1">Format: MP4, MKV, AVI (Max 100MB). Disarankan menggunakan YouTube untuk video panjang.</p>
                         )}
+                        
+                        {/* Preview PPTX during Upload */}
+                        {file && formData.tipe_media === 'ppt' && file.name.toLowerCase().endsWith('.pptx') && (
+                             <div className="mt-4 border-t pt-4">
+                                <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                    <BookOpen size={16} /> Preview Tampilan Siswa:
+                                </h3>
+                                <div className="h-[400px] border rounded-lg overflow-hidden bg-gray-100">
+                                    <PPTXPreview file={file} />
+                                </div>
+                             </div>
+                        )}
+
                         {isEdit && !file && (
                             <p className="text-xs text-orange-500 mt-2 font-medium">
                                 *Biarkan kosong jika tidak ingin mengubah media yang sudah ada.

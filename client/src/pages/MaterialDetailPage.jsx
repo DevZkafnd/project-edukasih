@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, PlayCircle, Info, Link as LinkIcon, FileText } from 'lucide-react';
+import { ArrowLeft, PlayCircle, Info, Link as LinkIcon, FileText, BookOpen } from 'lucide-react';
 import VideoPlayerWrapper from '../components/VideoPlayerWrapper';
 import StepViewer from '../components/StepViewer';
 import VoiceButton from '../components/VoiceButton';
@@ -174,8 +174,8 @@ const MaterialDetailPage = () => {
                     >
                         <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                         <div className="relative bg-white text-orange-600 text-2xl font-bold py-4 px-12 rounded-full border-4 border-orange-500 flex items-center gap-3 hover:scale-105 transition-transform">
-                            <FileText size={32} />
-                            {materi.tipe_media === 'ppt' ? 'Lihat Presentasi' : 'Lihat Dokumen'}
+                            {materi.tipe_media === 'ppt' ? <BookOpen size={32} /> : <FileText size={32} />}
+                            {materi.tipe_media === 'ppt' ? 'Lihat Preview PPT' : 'Lihat Dokumen'}
                         </div>
                     </button>
                     
