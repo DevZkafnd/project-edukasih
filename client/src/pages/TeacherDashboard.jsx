@@ -762,6 +762,16 @@ const TeacherDashboard = () => {
                     <button 
                         onClick={() => {
                             setEditMateri(null);
+                            setFormData({
+                                judul: '',
+                                kategori: 'akademik',
+                                jenjang: selectedJenjang || 'SD',
+                                tipe_media: 'video_youtube',
+                                url_media: '',
+                                panduan_ortu: '',
+                                langkah_langkah: ''
+                            });
+                            setFile(null);
                             setActiveTab('upload');
                         }}
                         className="w-full sm:w-auto bg-brand-blue text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition"
@@ -796,7 +806,20 @@ const TeacherDashboard = () => {
                    <div className="text-center py-20 bg-white rounded-2xl border border-gray-200 border-dashed">
                        <p className="text-gray-500 text-lg">Belum ada materi yang diupload.</p>
                        <button 
-                         onClick={() => setActiveTab('upload')}
+                         onClick={() => {
+                            setEditMateri(null);
+                            setFormData({
+                                judul: '',
+                                kategori: 'akademik',
+                                jenjang: selectedJenjang || 'SD',
+                                tipe_media: 'video_youtube',
+                                url_media: '',
+                                panduan_ortu: '',
+                                langkah_langkah: ''
+                            });
+                            setFile(null);
+                            setActiveTab('upload');
+                         }}
                          className="mt-4 text-brand-blue font-bold hover:underline"
                        >
                          Upload Sekarang
