@@ -11,8 +11,15 @@ const DocumentPreviewModal = ({ isOpen, onClose, document, downloadUrl }) => {
 
   // Helper to determine if we can preview
   const isPdf = document.url_media.toLowerCase().endsWith('.pdf');
+  const isPpt = /\.(ppt|pptx)$/i.test(document.url_media);
   const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(document.url_media);
   
+  // Microsoft Office Viewer URL (Requires Public URL)
+  // Encodes the file URL for the viewer
+  const getOfficeViewerUrl = (url) => {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl overflow-hidden animate-scaleIn">
@@ -43,6 +50,21 @@ const DocumentPreviewModal = ({ isOpen, onClose, document, downloadUrl }) => {
                     className="w-full h-full rounded-lg shadow-inner bg-white"
                     title="PDF Preview"
                 />
+            ) : isPpt ? (
+                <div className="w-full h-full relative group">
+                    <iframe 
+                        src={getOfficeViewerUrl(fileUrl)}
+                        className="w-full h-full rounded-lg shadow-inner bg-white"
+                        title="PPT Preview"
+                        onError={(e) => console.error("PPT Viewer Error:", e)}
+                    />
+                    {/* Overlay warning for Localhost */}
+                    {(fileUrl.includes('localhost') || fileUrl.includes('127.0.0.1')) && (
+                        <div className="absolute top-0 left-0 w-full bg-yellow-100/90 p-2 text-center text-xs text-yellow-800 border-b border-yellow-300">
+                             ⚠️ Preview PPT mungkin tidak muncul di Localhost. Gunakan di server publik/online.
+                        </div>
+                    )}
+                </div>
             ) : isImage ? (
                 <img 
                     src={fileUrl} 
@@ -56,7 +78,7 @@ const DocumentPreviewModal = ({ isOpen, onClose, document, downloadUrl }) => {
                     </div>
                     <h4 className="text-xl font-bold text-gray-800 mb-2">Preview Tidak Tersedia</h4>
                     <p className="text-gray-500 mb-6">
-                        Format file ini tidak mendukung preview langsung di browser. Silakan download untuk melihat isinya.
+                        Format file ini tidak mendukung preview langsung di browser (kecuali PDF, Gambar, atau PPT Online). Silakan download untuk melihat isinya.
                     </p>
                 </div>
             )}
