@@ -17,6 +17,8 @@ exports.getMaterials = async (req, res) => {
         const studentJenjang = student?.jenjang || 'SD';
         const studentKetunaan = student?.ketunaan || '';
 
+        console.log(`[MATERI_FETCH] Student: ${req.user.nama} (${req.user.id}), Jenjang: ${studentJenjang}, Ketunaan: ${studentKetunaan}`);
+
         // Adaptive Curriculum Logic
         let targetJenjang = studentJenjang;
 
@@ -34,6 +36,8 @@ exports.getMaterials = async (req, res) => {
             }
         }
         
+        console.log(`[MATERI_FETCH] Target Jenjang calculated: ${targetJenjang}`);
+
         // Show materials for this Jenjang OR assigned explicitly to this student (Legacy)
         query = {
             $or: [

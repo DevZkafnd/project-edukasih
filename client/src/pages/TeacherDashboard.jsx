@@ -469,6 +469,7 @@ const TeacherDashboard = () => {
                     setFormData({
                         judul: '',
                         kategori: 'akademik',
+                        jenjang: selectedJenjang || 'SD',
                         tipe_media: 'video_youtube',
                         url_media: '',
                         panduan_ortu: '',
@@ -1037,8 +1038,9 @@ const TeacherDashboard = () => {
                     />
                   </div>
 
-                  {/* Kategori & Tipe Media */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Kategori, Jenjang, Tipe Media (3 Column Grid) */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Kategori */}
                     <div>
                       <label className="block text-gray-700 font-bold mb-2">Kategori</label>
                       <div className="relative">
@@ -1055,38 +1057,32 @@ const TeacherDashboard = () => {
                         <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                       </div>
                     </div>
+
+                    {/* Jenjang */}
                     <div>
-                      <label className="block text-gray-700 font-bold mb-2">Pilih Jenjang</label>
+                      <label className="block text-gray-700 font-bold mb-2">Jenjang</label>
                       <div className="relative">
-                        {selectedJenjang && !isEdit ? (
-                             <div className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 font-medium flex items-center justify-between">
-                                <span>{selectedJenjang} <span className="text-xs text-brand-blue font-normal ml-2">(Otomatis Terpilih)</span></span>
-                                <CheckCircle size={20} className="text-brand-blue" />
-                             </div>
-                        ) : (
-                            <>
-                                <select
-                                  name="jenjang"
-                                  value={formData.jenjang}
-                                  onChange={handleInputChange}
-                                  className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
-                                  required
-                                >
-                                   <option value="PAUD">PAUD</option>
-                                   <option value="TK">TK</option>
-                                   <option value="SD">SD</option>
-                                   <option value="SMP">SMP</option>
-                                   <option value="SMA">SMA</option>
-                                </select>
-                                <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                            </>
-                        )}
+                        <select
+                          name="jenjang"
+                          value={formData.jenjang}
+                          onChange={handleInputChange}
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          required
+                        >
+                          <option value="PAUD">PAUD</option>
+                          <option value="TK">TK</option>
+                          <option value="SD">SD</option>
+                          <option value="SMP">SMP</option>
+                          <option value="SMA">SMA</option>
+                        </select>
+                        <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Materi akan tampil untuk semua siswa di jenjang ini.</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {selectedJenjang ? `Siswa ini berada di jenjang ${selectedJenjang}` : 'Pilih jenjang target'}
+                      </p>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Tipe Media */}
                     <div>
                       <label className="block text-gray-700 font-bold mb-2">Tipe Media</label>
                       <div className="relative">
@@ -1107,6 +1103,29 @@ const TeacherDashboard = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Info Penugasan Siswa */}
+                  {selectedStudent && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3 animate-fadeIn">
+                          <div className="w-10 h-10 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold shadow-sm">
+                              {selectedStudent.nama.charAt(0)}
+                          </div>
+                          <div>
+                              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Ditugaskan Khusus Untuk</p>
+                              <p className="text-gray-800 font-bold text-lg">{selectedStudent.nama}</p>
+                          </div>
+                          <div className="ml-auto flex flex-col items-end">
+                             <span className="bg-white text-brand-blue text-xs px-2 py-1 rounded-lg font-bold border border-blue-100 shadow-sm mb-1">
+                                 {selectedStudent.jenjang || 'Umum'}
+                             </span>
+                             {selectedStudent.ketunaan && (
+                                <span className="text-xs text-gray-500 font-medium">
+                                    {selectedStudent.ketunaan}
+                                </span>
+                             )}
+                          </div>
+                      </div>
+                  )}
 
                   {/* Media Input */}
                   <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
