@@ -69,14 +69,31 @@ const PPTXPreview = ({ file, url }) => {
     const elem = previewRef.current;
     if (!document.fullscreenElement) {
       elem.requestFullscreen().catch(err => {
-        alert(`Error attempting to enable fullscreen: ${err.message}`);
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        // Fallback or alert if needed, but console.error is better than alert for UX
       });
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
       setIsFullscreen(false);
     }
   };
+
+  // Listen for fullscreen change events (ESC key, etc.)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      // Trigger resize event for responsive content
+      window.dispatchEvent(new Event('resize'));
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col">

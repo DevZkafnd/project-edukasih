@@ -260,21 +260,19 @@ const TeacherDashboard = () => {
             return;
         }
         if (file) {
-            const allowedTypes = [
-                'application/pdf', 
-                'application/msword', 
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-            ];
-            // Basic check, though server logic might be looser or stricter. 
-            // Controller now defaults to 'dokumen' for non-video/non-image, so client side should be lenient or just warn.
-            // Let's just check size.
-            if (file.size > MAX_VIDEO_SIZE) {
-                toast.error(`Ukuran dokumen terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 100MB.`, { id: toastId });
-                return;
+            // Validasi Khusus PPTX (Max 25MB)
+            if (formData.tipe_media === 'ppt') {
+                const MAX_PPT_SIZE = 25 * 1024 * 1024; // 25MB
+                if (file.size > MAX_PPT_SIZE) {
+                    toast.error(`Ukuran file PPT terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 25MB.`, { id: toastId });
+                    return;
+                }
+            } else {
+                // Validasi Dokumen Lain (Max 100MB)
+                if (file.size > MAX_VIDEO_SIZE) {
+                    toast.error(`Ukuran dokumen terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 100MB.`, { id: toastId });
+                    return;
+                }
             }
         }
       }
@@ -285,7 +283,7 @@ const TeacherDashboard = () => {
       data.append('tipe_media', formData.tipe_media);
       data.append('panduan_ortu', formData.panduan_ortu);
       
-      // Validasi Ukuran File (Max 25MB)
+      // Validasi Ukuran File (General Safety Net)
       if (file && file.size > 100 * 1024 * 1024) {
         toast.error('Ukuran file terlalu besar! Maksimal 100MB.', { id: toastId });
         return;
