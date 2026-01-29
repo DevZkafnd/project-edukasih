@@ -151,7 +151,11 @@ exports.downloadMaterial = async (req, res) => {
         return res.status(404).json({ message: 'File fisik tidak ditemukan di server' });
     }
 
-    res.download(filePath, (err) => {
+    // Gunakan judul materi sebagai nama file download
+    const ext = path.extname(filePath);
+    const filename = `${materi.judul.replace(/[^a-zA-Z0-9]/g, '_')}${ext}`;
+
+    res.download(filePath, filename, (err) => {
         if (err) {
             console.error("Error downloading file:", err);
             // Only send error if headers haven't been sent
