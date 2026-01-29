@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown, CheckCircle, ChevronRight } from 'lucide-react';
+import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown, CheckCircle, ChevronRight, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
 import useAudio from '../hooks/useAudio';
@@ -301,10 +301,28 @@ const TeacherDashboard = () => {
         setActiveTab('materi'); // Go back to list
       } else {
         response = await axios.post('/api/materi', data, config);
-        toast.success('Materi berhasil diupload! Mengalihkan...', { id: toastId });
-        setTimeout(() => {
-            navigate(`/manage-quiz/${response.data._id}`);
-        }, 1000);
+        
+        // Jika Link Eksternal atau Dokumen, tidak perlu otomatis ke pembuat kuis
+        if (formData.tipe_media === 'link_eksternal' || formData.tipe_media === 'dokumen') {
+             toast.success('Materi berhasil disimpan!', { id: toastId });
+             // Reset Form
+             setFile(null);
+             setFormData({
+                judul: '',
+                kategori: 'akademik',
+                jenjang: 'SD',
+                tipe_media: 'gambar_lokal',
+                url_media: '',
+                panduan_ortu: '',
+                langkah_langkah: ''
+             });
+             setActiveTab('materi');
+        } else {
+             toast.success('Materi berhasil diupload! Mengalihkan ke pembuat kuis...', { id: toastId });
+             setTimeout(() => {
+                navigate(`/manage-quiz/${response.data._id}`);
+             }, 1000);
+        }
       }
       
       fetchData(); // Refresh data
@@ -839,7 +857,7 @@ const TeacherDashboard = () => {
                                <div className="p-5">
                                    <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-1" title={m.judul}>{m.judul}</h3>
                                    <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                       {m.tipe_media === 'video_youtube' ? 'YouTube' : m.tipe_media === 'video_lokal' ? 'Video Lokal' : m.tipe_media === 'link_eksternal' ? 'Link Eksternal' : 'Gambar'}
+                                       {m.tipe_media === 'video_youtube' ? 'YouTube' : m.tipe_media === 'video_lokal' ? 'Video Lokal' : m.tipe_media === 'link_eksternal' ? 'Link Eksternal' : m.tipe_media === 'dokumen' ? 'Dokumen' : 'Gambar'}
                                        <span className="w-1 h-1 bg-gray-300 rounded-full mx-1"></span>
                                        {new Date(m.createdAt).toLocaleDateString('id-ID')}
                                    </p>

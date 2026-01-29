@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { PlayCircle, Image as ImageIcon } from 'lucide-react';
+import { PlayCircle, Image as ImageIcon, Link as LinkIcon, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
@@ -82,6 +82,8 @@ const MaterialCard = ({ materi, index = 0 }) => {
               <PlayCircle className="text-red-500" size={28} />
             ) : materi.tipe_media === 'link_eksternal' ? (
               <LinkIcon className="text-purple-500" size={28} />
+            ) : materi.tipe_media === 'dokumen' ? (
+              <FileText className="text-orange-500" size={28} />
             ) : (
               <ImageIcon className="text-brand-blue" size={28} />
             )}
