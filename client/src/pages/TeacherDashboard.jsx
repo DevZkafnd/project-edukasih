@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown, CheckCircle } from 'lucide-react';
+import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown, CheckCircle, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
 import useAudio from '../hooks/useAudio';
@@ -28,19 +28,55 @@ const TeacherDashboard = () => {
   const navigate = useNavigate();
   
   const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  
   const [materials, setMaterials] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeTab, setActiveTab] = useState('students'); // Default to students list
+  const [activeTab, setActiveTab] = useState('students'); // 'students' | 'materials'
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editMateri, setEditMateri] = useState(null);
   const isEdit = !!editMateri;
   
+  // Drill-down State
+  const [viewState, setViewState] = useState('KETUNAAN_SELECT'); // 'KETUNAAN_SELECT' | 'JENJANG_SELECT' | 'KELAS_SELECT' | 'STUDENT_LIST' | 'STUDENT_DETAIL'
+  const [selectedKetunaan, setSelectedKetunaan] = useState(null);
+  const [selectedJenjang, setSelectedJenjang] = useState(null);
+  const [selectedKelas, setSelectedKelas] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
   const [search, setSearch] = useState('');
   const [filterKategori, setFilterKategori] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 6;
+
+  // --- Derived Data for Drill-down ---
+  const availableKetunaan = useMemo(() => {
+    const ketunaanList = students.map(s => s.ketunaan || 'Umum').filter(k => k);
+    return [...new Set(ketunaanList)].sort();
+  }, [students]);
+
+  const availableJenjang = useMemo(() => {
+      if (!selectedKetunaan) return [];
+      const jenjangs = students
+        .filter(s => (s.ketunaan || 'Umum') === selectedKetunaan)
+        .map(s => s.jenjang || 'SD');
+      return [...new Set(jenjangs)].sort();
+  }, [students, selectedKetunaan]);
+  
+  const availableKelas = useMemo(() => {
+    if (!selectedJenjang || !selectedKetunaan) return [];
+    const classes = students
+        .filter(s => (s.jenjang || 'SD') === selectedJenjang && (s.ketunaan || 'Umum') === selectedKetunaan)
+        .map(s => s.kelas || 'Belum Ada Kelas');
+    return [...new Set(classes)].sort();
+  }, [students, selectedJenjang, selectedKetunaan]);
+
+  const studentsInClass = useMemo(() => {
+    if (!selectedJenjang || !selectedKelas || !selectedKetunaan) return [];
+    return students.filter(s => 
+        (s.jenjang || 'SD') === selectedJenjang && 
+        (s.kelas || 'Belum Ada Kelas') === selectedKelas &&
+        (s.ketunaan || 'Umum') === selectedKetunaan
+    );
+  }, [students, selectedJenjang, selectedKelas, selectedKetunaan]);
 
   // Calculate Student Stats
   const studentStats = useMemo(() => {
@@ -98,10 +134,11 @@ const TeacherDashboard = () => {
   const [formData, setFormData] = useState({
     judul: '',
     kategori: 'akademik',
-    tipe_media: 'video_youtube',
+    tipe_media: 'gambar_lokal',
     url_media: '',
+    langkah_langkah: [''],
     panduan_ortu: '',
-    langkah_langkah: ''
+    jenjang: 'SD' // Replaced siswa with jenjang
   });
   const [file, setFile] = useState(null);
 
@@ -164,8 +201,9 @@ const TeacherDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedStudent) {
-        toast.error("Silakan pilih siswa terlebih dahulu.");
+    // Validate Jenjang is selected
+    if (!formData.jenjang) {
+        toast.error("Silakan pilih jenjang terlebih dahulu.");
         return;
     }
 
@@ -198,16 +236,20 @@ const TeacherDashboard = () => {
       const data = new FormData();
       data.append('judul', formData.judul);
       data.append('kategori', formData.kategori);
+      data.append('jenjang', formData.jenjang); // Append Jenjang
       data.append('tipe_media', formData.tipe_media);
       data.append('panduan_ortu', formData.panduan_ortu);
+      
       // Validasi Ukuran File (Max 25MB)
       if (file && file.size > 100 * 1024 * 1024) {
         toast.error('Ukuran file terlalu besar! Maksimal 100MB.', { id: toastId });
         return;
       }
 
-      // Assign to selected student
-      data.append('siswa', selectedStudent._id);
+      // Optional: Assign to selected student if present (Legacy support, but primarily use Jenjang)
+      if (selectedStudent) {
+          data.append('siswa', selectedStudent._id);
+      }
       
       const stepsArray = formData.langkah_langkah.split('\n').filter(step => step.trim() !== '');
       stepsArray.forEach(step => data.append('langkah_langkah', step));
@@ -250,6 +292,7 @@ const TeacherDashboard = () => {
     setFormData({
       judul: materi.judul,
       kategori: materi.kategori,
+      jenjang: materi.jenjang || 'SD', // Load existing jenjang
       tipe_media: materi.tipe_media,
       url_media: materi.tipe_media === 'video_youtube' ? materi.url_media : '',
       panduan_ortu: materi.panduan_ortu || '',
@@ -397,6 +440,14 @@ const TeacherDashboard = () => {
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-gray-800 truncate">{user?.nama}</p>
               <p className="text-xs text-gray-500">Guru</p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {user?.posisi && (
+                  <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-lg text-xs font-bold">{user.posisi}</span>
+                )}
+                {user?.mata_pelajaran && (
+                  <span className="bg-blue-100 text-brand-blue px-2 py-0.5 rounded-lg text-xs font-bold">{user.mata_pelajaran}</span>
+                )}
+              </div>
             </div>
           </div>
           <button 
@@ -424,57 +475,177 @@ const TeacherDashboard = () => {
 
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
           
-          {/* View: Student List (Default) */}
+          {/* View: Drill-down Flow (Default) */}
           {!selectedStudent && (
-            <div className="space-y-6">
-                <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">Pilih Siswa untuk Dikelola</h1>
-                    <p className="text-gray-600">Pilih siswa untuk melihat progress, mengelola materi, dan memberikan tugas spesifik.</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {students.map(student => (
-                        <div key={student._id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col items-center text-center">
-                            <div className="w-20 h-20 rounded-full bg-brand-blue text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
-                                {student.nama.charAt(0)}
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-1">{student.nama}</h3>
-                            <p className="text-sm text-gray-500 mb-6">Siswa</p>
-                            
-                            <div className="w-full grid grid-cols-2 gap-2 mb-6">
-                                <div className="bg-yellow-50 p-2 rounded-lg">
-                                    <div className="flex items-center justify-center gap-1 text-yellow-600 font-bold">
-                                        <Star size={16} fill="currentColor" />
-                                        <span>{student.skor_bintang || 0}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">Bintang</p>
-                                </div>
-                                <div className="bg-green-50 p-2 rounded-lg">
-                                    <div className="flex items-center justify-center gap-1 text-green-600 font-bold">
-                                        <BookOpen size={16} />
-                                        <span>{new Set(student.history?.map(h => h.materi) || []).size}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">Selesai</p>
-                                </div>
-                            </div>
-
+             <div className="space-y-6 animate-fadeIn">
+               {/* Breadcrumb & Header */}
+               <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                      <Users className="text-brand-blue" /> Manajemen Siswa
+                  </h2>
+                  
+                  {/* Breadcrumb Navigation */}
+                  <div className="flex items-center gap-2 text-sm bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                      <button 
+                          onClick={() => { setViewState('KETUNAAN_SELECT'); setSelectedKetunaan(null); setSelectedJenjang(null); setSelectedKelas(null); }}
+                          className={`font-bold transition ${viewState === 'KETUNAAN_SELECT' ? 'text-brand-blue' : 'text-gray-500 hover:text-brand-blue'}`}
+                      >
+                          Ketunaan
+                      </button>
+                      {selectedKetunaan && (
+                          <>
+                            <ChevronRight size={14} className="text-gray-400" />
                             <button 
-                                onClick={() => {
-                                    setSelectedStudent(student);
-                                    setActiveTab('materi');
-                                }}
-                                className="w-full bg-brand-blue text-white py-2 rounded-xl font-bold hover:bg-blue-700 transition"
+                                onClick={() => { setViewState('JENJANG_SELECT'); setSelectedJenjang(null); setSelectedKelas(null); }}
+                                className={`font-bold transition ${viewState === 'JENJANG_SELECT' ? 'text-brand-blue' : 'text-gray-500 hover:text-brand-blue'}`}
                             >
-                                Kelola Materi
+                                {selectedKetunaan}
                             </button>
-                        </div>
-                    ))}
-                    {students.length === 0 && !loadingData && (
-                        <div className="col-span-full text-center py-10 text-gray-500">
-                            Belum ada data siswa.
-                        </div>
-                    )}
-                </div>
+                          </>
+                      )}
+                      {selectedJenjang && (
+                          <>
+                              <ChevronRight size={14} className="text-gray-400" />
+                              <button 
+                                  onClick={() => { setViewState('KELAS_SELECT'); setSelectedKelas(null); }}
+                                  className={`font-bold transition ${viewState === 'KELAS_SELECT' ? 'text-brand-blue' : 'text-gray-500 hover:text-brand-blue'}`}
+                              >
+                                  {selectedJenjang}
+                              </button>
+                          </>
+                      )}
+                      {selectedKelas && (
+                          <>
+                              <ChevronRight size={14} className="text-gray-400" />
+                              <span className="font-bold text-brand-blue">{selectedKelas}</span>
+                          </>
+                      )}
+                  </div>
+               </div>
+
+               {/* Level 0: Ketunaan Selection */}
+               {viewState === 'KETUNAAN_SELECT' && (
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       {availableKetunaan.length === 0 ? (
+                            <div className="col-span-full bg-white p-12 rounded-2xl shadow-sm text-center border border-dashed border-gray-300">
+                                <p className="text-gray-500 text-lg">Belum ada data ketunaan siswa.</p>
+                            </div>
+                       ) : (
+                           availableKetunaan.map(ketunaan => (
+                               <button
+                                   key={ketunaan}
+                                   onClick={() => { setSelectedKetunaan(ketunaan); setViewState('JENJANG_SELECT'); }}
+                                   className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-brand-blue transition flex flex-col items-center justify-center gap-4 group h-64"
+                               >
+                                   <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition duration-300">
+                                       <Users size={48} />
+                                   </div>
+                                   <div className="text-center">
+                                       <h3 className="text-xl font-bold text-gray-800">{ketunaan}</h3>
+                                       <p className="text-gray-500 font-medium">
+                                           {students.filter(s => (s.ketunaan || 'Umum') === ketunaan).length} Siswa
+                                       </p>
+                                   </div>
+                               </button>
+                           ))
+                       )}
+                   </div>
+               )}
+
+               {/* Level 1: Jenjang Selection */}
+               {viewState === 'JENJANG_SELECT' && (
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       {availableJenjang.map(jenjang => (
+                           <button
+                               key={jenjang}
+                               onClick={() => { setSelectedJenjang(jenjang); setViewState('KELAS_SELECT'); }}
+                               className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-brand-blue transition flex flex-col items-center justify-center gap-4 group h-64"
+                           >
+                               <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-brand-blue group-hover:scale-110 transition duration-300">
+                                   <span className="text-3xl font-bold">{jenjang}</span>
+                               </div>
+                               <div className="text-center">
+                                   <h3 className="text-xl font-bold text-gray-800">Jenjang {jenjang}</h3>
+                                   <p className="text-gray-500 font-medium">
+                                       {students.filter(s => (s.jenjang || 'SD') === jenjang).length} Siswa
+                                   </p>
+                               </div>
+                           </button>
+                       ))}
+                   </div>
+               )}
+
+               {/* Level 2: Kelas Selection */}
+               {viewState === 'KELAS_SELECT' && (
+                   <div className="space-y-4">
+                       <h3 className="text-lg font-bold text-gray-700 mb-4">Pilih Kelas di Jenjang {selectedJenjang}</h3>
+                       {availableKelas.length === 0 ? (
+                           <div className="bg-white p-12 rounded-2xl shadow-sm text-center border border-dashed border-gray-300">
+                               <p className="text-gray-500 text-lg">Belum ada kelas terdaftar di jenjang ini.</p>
+                           </div>
+                       ) : (
+                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                               {availableKelas.map(kelas => (
+                                   <button
+                                       key={kelas}
+                                       onClick={() => { setSelectedKelas(kelas); setViewState('STUDENT_LIST'); }}
+                                       className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-brand-blue transition text-left group"
+                                   >
+                                       <div className="flex justify-between items-start mb-3">
+                                           <div className="bg-blue-100 text-brand-blue px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                               Kelas
+                                           </div>
+                                           <Users size={20} className="text-gray-300 group-hover:text-brand-blue transition" />
+                                       </div>
+                                       <h3 className="text-2xl font-bold text-gray-800 mb-2">{kelas}</h3>
+                                       <p className="text-sm text-gray-500 font-medium">
+                                           {students.filter(s => (s.jenjang || 'SD') === selectedJenjang && (s.kelas || 'Belum Ada Kelas') === kelas).length} Siswa
+                                       </p>
+                                   </button>
+                               ))}
+                           </div>
+                       )}
+                   </div>
+               )}
+
+               {/* Level 3: Student List */}
+               {viewState === 'STUDENT_LIST' && (
+                   <div className="space-y-4">
+                        <h3 className="text-lg font-bold text-gray-700 mb-4">Daftar Siswa - {selectedKelas} ({selectedJenjang} - {selectedKetunaan})</h3>
+                        {studentsInClass.length === 0 ? (
+                             <div className="bg-white p-12 rounded-2xl shadow-sm text-center border border-dashed border-gray-300">
+                                <p className="text-gray-500 text-lg">Tidak ada siswa di kelas ini.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {studentsInClass.map(student => (
+                                    <button 
+                                        key={student._id} 
+                                        onClick={() => { 
+                                            setSelectedStudent(student); 
+                                            setActiveTab('materi');
+                                        }}
+                                        className="bg-white border border-gray-200 rounded-xl p-4 hover:border-brand-blue hover:shadow-md transition cursor-pointer flex items-center gap-4 text-left group"
+                                    >
+                                        <div className="w-14 h-14 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-lg group-hover:scale-105 transition">
+                                            {student.nama.charAt(0)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-gray-800 truncate">{student.nama}</h4>
+                                            <p className="text-xs text-gray-500">{student.username}</p>
+                                            <div className="flex gap-2 mt-2">
+                                                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded font-bold flex items-center gap-1">
+                                                    <Star size={10} fill="currentColor"/> {student.skor_bintang || 0}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <ChevronRight size={20} className="text-gray-300 group-hover:text-brand-blue" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                   </div>
+               )}
             </div>
           )}
 
@@ -493,6 +664,10 @@ const TeacherDashboard = () => {
                             </button>
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-800">{selectedStudent.nama}</h1>
+                                <div className="flex gap-2 mt-1 mb-1">
+                                    <span className="bg-blue-100 text-brand-blue px-2 py-0.5 rounded text-xs font-bold">{selectedStudent.jenjang || 'SD'}</span>
+                                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">{selectedStudent.kelas || 'Belum Ada Kelas'}</span>
+                                </div>
                                 <p className="text-gray-500 text-sm">Mengelola Materi & Progress Siswa</p>
                             </div>
                         </div>
@@ -773,6 +948,29 @@ const TeacherDashboard = () => {
                       </div>
                     </div>
                     <div>
+                      <label className="block text-gray-700 font-bold mb-2">Pilih Jenjang</label>
+                      <div className="relative">
+                        <select
+                          name="jenjang"
+                          value={formData.jenjang}
+                          onChange={handleInputChange}
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          required
+                        >
+                           <option value="PAUD">PAUD</option>
+                           <option value="TK">TK</option>
+                           <option value="SD">SD</option>
+                           <option value="SMP">SMP</option>
+                           <option value="SMA">SMA</option>
+                        </select>
+                         <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Materi akan tampil untuk semua siswa di jenjang ini.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
                       <label className="block text-gray-700 font-bold mb-2">Tipe Media</label>
                       <div className="relative">
                         <select
@@ -781,9 +979,9 @@ const TeacherDashboard = () => {
                           onChange={handleInputChange}
                           className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                         >
+                          <option value="gambar_lokal">Gambar (Upload)</option>
                           <option value="video_youtube">Video YouTube</option>
                           <option value="video_lokal">Video Lokal (Upload)</option>
-                          <option value="gambar">Gambar</option>
                         </select>
                         <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                       </div>

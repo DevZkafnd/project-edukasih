@@ -81,7 +81,13 @@ const MaterialListPage = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-brand-blue text-center order-first sm:order-none drop-shadow-sm" style={{ fontFamily: 'Comic Neue, cursive' }}>
           {categoryNames[kategori] || kategori}
         </h1>
-        <div className="self-end sm:self-auto">
+        <div className="self-end sm:self-auto flex flex-col items-end gap-2">
+            {user && (
+              <div className="flex gap-1">
+                  <span className="bg-blue-100 text-brand-blue px-2 py-0.5 rounded-lg text-xs font-bold border-2 border-blue-200">{user.jenjang || 'SD'}</span>
+                  <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-lg text-xs font-bold border-2 border-green-200">{user.kelas || 'Belum Ada Kelas'}</span>
+              </div>
+            )}
             <VoiceButton 
             text="Bacakan" 
             audioScript={

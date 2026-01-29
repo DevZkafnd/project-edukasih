@@ -58,7 +58,7 @@ exports.register = async (req, res) => {
   try {
     if (checkDB(res)) return;
 
-    const { nama, username, password, role, nama_orang_tua } = req.body;
+    const { nama, username, password, role, nama_orang_tua, jenjang, kelas, posisi, mata_pelajaran, ketunaan } = req.body;
 
     // Simple validation
     if (!username || !password || !nama) {
@@ -80,7 +80,12 @@ exports.register = async (req, res) => {
       username,
       password: hashedPassword,
       role: role || 'siswa',
-      nama_orang_tua: role === 'guru' ? '' : nama_orang_tua
+      nama_orang_tua: role === 'guru' ? '' : (nama_orang_tua || ''),
+      jenjang: role === 'siswa' ? (jenjang || '') : '',
+      ketunaan: role === 'siswa' ? (ketunaan || '') : '',
+      kelas: role === 'siswa' ? (kelas || '') : '',
+      posisi: role === 'guru' ? (posisi || '') : '',
+      mata_pelajaran: role === 'guru' ? (mata_pelajaran || '') : ''
     });
 
     await newUser.save();
@@ -123,7 +128,11 @@ exports.login = async (req, res) => {
         nama: user.nama,
         username: user.username,
         role: user.role,
-        nama_orang_tua: user.nama_orang_tua
+        nama_orang_tua: user.nama_orang_tua,
+        jenjang: user.jenjang,
+        kelas: user.kelas,
+        posisi: user.posisi,
+        mata_pelajaran: user.mata_pelajaran
       },
       token
     });
@@ -156,7 +165,12 @@ exports.getMe = async (req, res) => {
       nama: userObj.nama,
       username: userObj.username,
       role: userObj.role,
-      nama_orang_tua: userObj.nama_orang_tua
+      nama_orang_tua: userObj.nama_orang_tua,
+      jenjang: userObj.jenjang,
+      kelas: userObj.kelas,
+      skor_bintang: userObj.skor_bintang,
+      posisi: userObj.posisi,
+      mata_pelajaran: userObj.mata_pelajaran
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -188,7 +202,7 @@ exports.getAllStudents = async (req, res) => {
 // Create Student (Guru)
 exports.createStudent = async (req, res) => {
   try {
-    const { nama, username, password, nama_orang_tua } = req.body;
+    const { nama, username, password, nama_orang_tua, jenjang, kelas, ketunaan } = req.body;
     if (!nama || !username || !password) {
       return res.status(400).json({ message: 'Nama, username, dan password wajib diisi' });
     }
@@ -206,7 +220,10 @@ exports.createStudent = async (req, res) => {
       username,
       password: hashedPassword,
       role: 'siswa',
-      nama_orang_tua: nama_orang_tua || ''
+      nama_orang_tua: nama_orang_tua || '',
+      jenjang: jenjang || '',
+      kelas: kelas || '',
+      ketunaan: ketunaan || ''
     });
     const saved = await siswa.save();
     res.status(201).json({ message: 'Siswa berhasil dibuat', siswa: { ...saved.toObject(), password: undefined } });
@@ -218,7 +235,7 @@ exports.createStudent = async (req, res) => {
 // Create Teacher (Admin Only)
 exports.createTeacher = async (req, res) => {
   try {
-    const { nama, username, password } = req.body;
+    const { nama, username, password, posisi, mata_pelajaran } = req.body;
     if (!nama || !username || !password) {
       return res.status(400).json({ message: 'Nama, username, dan password wajib diisi' });
     }
@@ -236,7 +253,9 @@ exports.createTeacher = async (req, res) => {
       username,
       password: hashedPassword,
       role: 'guru',
-      nama_orang_tua: ''
+      nama_orang_tua: '',
+      posisi: posisi || '',
+      mata_pelajaran: mata_pelajaran || ''
     });
     const saved = await guru.save();
     res.status(201).json({ message: 'Guru berhasil dibuat', guru: { ...saved.toObject(), password: undefined } });
@@ -259,7 +278,7 @@ exports.getAllTeachers = async (req, res) => {
 exports.updateTeacher = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama, username, password } = req.body;
+    const { nama, username, password, posisi, mata_pelajaran } = req.body;
     const guru = await Siswa.findOne({ _id: id, role: 'guru' });
     if (!guru) return res.status(404).json({ message: 'Guru tidak ditemukan' });
 
@@ -271,6 +290,8 @@ exports.updateTeacher = async (req, res) => {
       guru.password = await bcrypt.hash(password, salt);
     }
 
+    if (posisi !== undefined) guru.posisi = posisi;
+    if (mata_pelajaran !== undefined) guru.mata_pelajaran = mata_pelajaran;
     const saved = await guru.save();
     res.json({ message: 'Guru berhasil diperbarui', guru: { ...saved.toObject(), password: undefined } });
   } catch (error) {
@@ -295,7 +316,7 @@ exports.deleteTeacher = async (req, res) => {
 exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama, username, password, nama_orang_tua, skor_bintang } = req.body;
+    const { nama, username, password, nama_orang_tua, skor_bintang, jenjang, kelas, ketunaan } = req.body;
     const siswa = await Siswa.findById(id);
     if (!siswa) return res.status(404).json({ message: 'Siswa tidak ditemukan' });
     
@@ -309,6 +330,9 @@ exports.updateStudent = async (req, res) => {
     
     if (nama_orang_tua !== undefined) siswa.nama_orang_tua = nama_orang_tua;
     if (typeof skor_bintang === 'number') siswa.skor_bintang = skor_bintang;
+    if (jenjang !== undefined) siswa.jenjang = jenjang;
+    if (kelas !== undefined) siswa.kelas = kelas;
+    if (ketunaan !== undefined) siswa.ketunaan = ketunaan;
     
     const saved = await siswa.save();
     res.json({ message: 'Siswa berhasil diperbarui', siswa: { ...saved.toObject(), password: undefined } });

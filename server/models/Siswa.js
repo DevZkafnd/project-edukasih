@@ -23,6 +23,28 @@ const SiswaSchema = new mongoose.Schema({
     type: String,
     default: '' // Hanya diisi jika role = 'siswa'
   },
+  jenjang: {
+    type: String,
+    enum: ['TK', 'SD', 'SMP', 'SMA', ''], // Kosong untuk guru/admin
+    default: ''
+  },
+  ketunaan: {
+    type: String,
+    enum: ['Tunanetra', 'Tunarungu', 'Tunagrahita', 'Tunadaksa', 'Autis', ''],
+    default: ''
+  },
+  kelas: {
+    type: String,
+    default: '' // e.g. "Kelas 1", "Kelas 7"
+  },
+  posisi: {
+    type: String,
+    default: '' // Posisi jabatan di sekolah (untuk guru), misal: "Wali Kelas", "Kepala Lab"
+  },
+  mata_pelajaran: {
+    type: String,
+    default: '' // Mata pelajaran yang diajar (untuk guru), misal: "Matematika"
+  },
   skor_bintang: {
     type: Number,
     default: 0

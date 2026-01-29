@@ -80,6 +80,10 @@ const HomePage = () => {
               <div className="hidden sm:block text-right mr-2">
                 <p className="text-sm text-gray-500 font-bold">Halo, Teman!</p>
                 <p className="text-lg font-bold text-brand-blue">{user.nama}</p>
+                <div className="flex gap-1 justify-end mt-1">
+                  <span className="bg-blue-100 text-brand-blue px-2 py-0.5 rounded-lg text-xs font-bold border-2 border-blue-200">{user.jenjang || 'SD'}</span>
+                  <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-lg text-xs font-bold border-2 border-green-200">{user.kelas || 'Belum Ada Kelas'}</span>
+                </div>
               </div>
               <Link to="/forum" className="p-3 bg-yellow-100 text-yellow-600 rounded-full hover:bg-yellow-200 transition border-2 border-yellow-200" title="Forum Kelas">
                 <MessageSquare size={24} />

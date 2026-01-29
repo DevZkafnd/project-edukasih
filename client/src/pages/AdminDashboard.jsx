@@ -17,15 +17,15 @@ const AdminDashboard = () => {
 
   // Teacher State
   const [teachers, setTeachers] = useState([]);
-  const [teacherForm, setTeacherForm] = useState({ nama: '', username: '', password: '' });
+  const [teacherForm, setTeacherForm] = useState({ nama: '', username: '', password: '', mata_pelajaran: '', posisi: '' });
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
 
   // Student State
   const [students, setStudents] = useState([]);
-  const [createStudent, setCreateStudent] = useState({ nama: '', username: '', password: '', nama_orang_tua: '' });
+  const [createStudent, setCreateStudent] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', jenjang: '', kelas: '' });
   const [editingStudent, setEditingStudent] = useState(null);
-  const [editStudentForm, setEditStudentForm] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', skor_bintang: 0 });
+  const [editStudentForm, setEditStudentForm] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', skor_bintang: 0, jenjang: '', kelas: '' });
   const [studentSearch, setStudentSearch] = useState('');
   const [studentPage, setStudentPage] = useState(1);
   const studentsPageSize = 8;
@@ -81,13 +81,15 @@ const AdminDashboard = () => {
     setTeacherForm({
       nama: teacher.nama || '',
       username: teacher.username || '',
-      password: ''
+      password: '',
+      mata_pelajaran: teacher.mata_pelajaran || '',
+      posisi: teacher.posisi || ''
     });
   };
 
   const cancelEditTeacher = () => {
     setEditingTeacher(null);
-    setTeacherForm({ nama: '', username: '', password: '' });
+    setTeacherForm({ nama: '', username: '', password: '', mata_pelajaran: '', posisi: '' });
   };
 
   const deleteTeacher = async (teacher) => {
@@ -116,7 +118,7 @@ const AdminDashboard = () => {
         await axios.post('/api/auth/teachers', teacherForm);
         toast.success('Akun Guru berhasil dibuat', { id: toastId });
       }
-      setTeacherForm({ nama: '', username: '', password: '' });
+      setTeacherForm({ nama: '', username: '', password: '', mata_pelajaran: '', posisi: '' });
       setEditingTeacher(null);
       fetchTeachers();
     } catch (error) {
@@ -135,7 +137,7 @@ const AdminDashboard = () => {
     try {
       await axios.post('/api/auth/students', createStudent);
       toast.success('Siswa berhasil dibuat', { id: toastId });
-      setCreateStudent({ nama: '', username: '', password: '', nama_orang_tua: '' });
+      setCreateStudent({ nama: '', username: '', password: '', nama_orang_tua: '', jenjang: '', kelas: '', ketunaan: '' });
       fetchStudents();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Gagal membuat siswa', { id: toastId });
@@ -149,7 +151,10 @@ const AdminDashboard = () => {
       username: s.username || '',
       password: '',
       nama_orang_tua: s.nama_orang_tua || '',
-      skor_bintang: s.skor_bintang || 0
+      skor_bintang: s.skor_bintang || 0,
+      jenjang: s.jenjang || '',
+      kelas: s.kelas || '',
+      ketunaan: s.ketunaan || ''
     });
   };
 
@@ -319,6 +324,31 @@ const AdminDashboard = () => {
                     required={!editingTeacher}
                   />
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2">Mengajar Mata Pelajaran</label>
+                    <input 
+                      type="text" 
+                      name="mata_pelajaran" 
+                      value={teacherForm.mata_pelajaran} 
+                      onChange={handleTeacherChange} 
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                      placeholder="Contoh: Matematika"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2">Posisi di Sekolah</label>
+                    <input 
+                      type="text" 
+                      name="posisi" 
+                      value={teacherForm.posisi} 
+                      onChange={handleTeacherChange} 
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                      placeholder="Contoh: Wali Kelas 7A"
+                    />
+                  </div>
+                </div>
 
                 <div className="pt-4 flex gap-3">
                   <button 
@@ -352,6 +382,8 @@ const AdminDashboard = () => {
                         <th className="py-2 pr-4">Nama</th>
                         <th className="py-2 pr-4">Username</th>
                         <th className="py-2 pr-4">Dibuat</th>
+                        <th className="py-2 pr-4">Posisi</th>
+                        <th className="py-2 pr-4">Mengajar</th>
                         <th className="py-2 pr-4 text-right">Aksi</th>
                       </tr>
                     </thead>
@@ -362,6 +394,20 @@ const AdminDashboard = () => {
                           <td className="py-3 pr-4">{t.username}</td>
                           <td className="py-3 pr-4">
                             {t.createdAt ? new Date(t.createdAt).toLocaleDateString('id-ID') : '-'}
+                          </td>
+                          <td className="py-3 pr-4">
+                            {t.posisi ? (
+                              <span className="inline-block bg-green-100 text-green-700 px-2 py-0.5 rounded-lg font-bold text-xs">
+                                {t.posisi}
+                              </span>
+                            ) : <span className="text-gray-400 text-xs">-</span>}
+                          </td>
+                          <td className="py-3 pr-4">
+                            {t.mata_pelajaran ? (
+                              <span className="inline-block bg-blue-100 text-brand-blue px-2 py-0.5 rounded-lg font-bold text-xs">
+                                {t.mata_pelajaran}
+                              </span>
+                            ) : <span className="text-gray-400 text-xs">-</span>}
                           </td>
                           <td className="py-3 pr-4 text-right space-x-2">
                             <button
@@ -410,66 +456,88 @@ const AdminDashboard = () => {
              </div>
 
              {/* Create Student Form */}
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-bold text-gray-700 mb-4">Tambah Siswa Baru</h3>
-                <form onSubmit={submitCreateStudent} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                  <div className="md:col-span-1">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">Nama</label>
-                    <input
-                      type="text"
-                      name="nama"
-                      value={createStudent.nama}
-                      onChange={handleCreateStudentChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
-                      placeholder="Nama siswa"
-                      required
+             <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+                <h3 className="font-bold text-lg mb-4 text-brand-blue flex items-center gap-2">
+                     <UserPlus size={20} /> Tambah Siswa Baru
+                </h3>
+                <form onSubmit={submitCreateStudent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input 
+                        type="text" 
+                        placeholder="Nama Lengkap Siswa"
+                        className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none"
+                        value={createStudent.nama}
+                        onChange={(e) => setCreateStudent({...createStudent, nama: e.target.value})}
+                        required
                     />
-                  </div>
-                  <div className="md:col-span-1">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">Username</label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={createStudent.username}
-                      onChange={handleCreateStudentChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
-                      placeholder="Username"
-                      required
+                    <input 
+                        type="text" 
+                        placeholder="Username"
+                        className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none"
+                        value={createStudent.username}
+                        onChange={(e) => setCreateStudent({...createStudent, username: e.target.value})}
+                        required
                     />
-                  </div>
-                  <div className="md:col-span-1">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={createStudent.password}
-                      onChange={handleCreateStudentChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
-                      placeholder="Password"
-                      required
+                    <input 
+                        type="text" 
+                        placeholder="Password"
+                        className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none"
+                        value={createStudent.password}
+                        onChange={(e) => setCreateStudent({...createStudent, password: e.target.value})}
+                        required
                     />
-                  </div>
-                  <div className="md:col-span-1">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">Nama Orang Tua</label>
-                    <input
-                      type="text"
-                      name="nama_orang_tua"
-                      value={createStudent.nama_orang_tua}
-                      onChange={handleCreateStudentChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
-                      placeholder="Nama orang tua"
+                     <input 
+                        type="text" 
+                        placeholder="Nama Orang Tua"
+                        className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none"
+                        value={createStudent.nama_orang_tua}
+                        onChange={(e) => setCreateStudent({...createStudent, nama_orang_tua: e.target.value})}
                     />
-                  </div>
-                  <div className="md:col-span-1">
-                    <button
-                      type="submit"
-                      className="w-full bg-brand-blue text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition"
+                    
+                    {/* New Fields: Jenjang & Kelas */}
+                    <div className="flex flex-col md:flex-row gap-2 md:col-span-2">
+                         <select 
+                            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none w-full md:w-1/3"
+                            value={createStudent.ketunaan}
+                            onChange={(e) => setCreateStudent({...createStudent, ketunaan: e.target.value})}
+                            required
+                         >
+                            <option value="">Pilih Ketunaan</option>
+                            <option value="Tunanetra">Tunanetra</option>
+                            <option value="Tunarungu">Tunarungu</option>
+                            <option value="Tunagrahita">Tunagrahita</option>
+                            <option value="Tunadaksa">Tunadaksa</option>
+                            <option value="Autis">Autis</option>
+                         </select>
+                         <select 
+                            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none w-full md:w-1/3"
+                            value={createStudent.jenjang}
+                            onChange={(e) => setCreateStudent({...createStudent, jenjang: e.target.value})}
+                            required
+                         >
+                            <option value="">Pilih Jenjang</option>
+                            <option value="TK">TK</option>
+                            <option value="SD">SD</option>
+                            <option value="SMP">SMP</option>
+                            <option value="SMA">SMA</option>
+                         </select>
+                         <input 
+                            type="text" 
+                            placeholder="Kelas (contoh: Kelas 1, 7A)"
+                            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none w-full md:w-1/3"
+                            value={createStudent.kelas}
+                            onChange={(e) => setCreateStudent({...createStudent, kelas: e.target.value})}
+                            required
+                        />
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        className="bg-brand-blue text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition md:col-span-2"
                     >
-                      Buat Akun
+                        Buat Akun Siswa
                     </button>
-                  </div>
                 </form>
-              </div>
+             </div>
 
               {/* Student List */}
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
@@ -624,6 +692,48 @@ const AdminDashboard = () => {
                     value={editStudentForm.skor_bintang}
                     onChange={handleEditStudentChange}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                    />
+                </div>
+                <div>
+                    <label className="block text-gray-700 font-bold mb-2">Ketunaan</label>
+                    <select
+                    name="ketunaan"
+                    value={editStudentForm.ketunaan}
+                    onChange={handleEditStudentChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                    >
+                        <option value="">Pilih Ketunaan</option>
+                        <option value="Tunanetra">Tunanetra</option>
+                        <option value="Tunarungu">Tunarungu</option>
+                        <option value="Tunagrahita">Tunagrahita</option>
+                        <option value="Tunadaksa">Tunadaksa</option>
+                        <option value="Autis">Autis</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-gray-700 font-bold mb-2">Jenjang</label>
+                    <select
+                    name="jenjang"
+                    value={editStudentForm.jenjang}
+                    onChange={handleEditStudentChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                    >
+                        <option value="">Pilih Jenjang</option>
+                        <option value="TK">TK</option>
+                        <option value="SD">SD</option>
+                        <option value="SMP">SMP</option>
+                        <option value="SMA">SMA</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-gray-700 font-bold mb-2">Kelas</label>
+                    <input
+                    type="text"
+                    name="kelas"
+                    value={editStudentForm.kelas}
+                    onChange={handleEditStudentChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                    placeholder="Contoh: Kelas 1, 7A"
                     />
                 </div>
                 </div>

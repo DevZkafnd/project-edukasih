@@ -37,10 +37,16 @@ const MateriSchema = new mongoose.Schema({
     type: String,
     default: '' // Tips/Panduan khusus untuk orang tua
   },
+  jenjang: {
+    type: String,
+    enum: ['PAUD', 'TK', 'SD', 'SMP', 'SMA'],
+    default: 'SD' // Default untuk migrasi
+  },
+  // Deprecated: siswa specific assignment is being replaced by jenjang
   siswa: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Siswa',
-    default: null // Jika null, materi bersifat global (opsional, tergantung use case)
+    default: null
   }
 }, { timestamps: true });
 

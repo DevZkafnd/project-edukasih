@@ -11,19 +11,78 @@ exports.getMaterials = async (req, res) => {
     let query = {};
     
     // Authorization & Isolation Logic
-    // req.user is available because of 'protect' middleware
     if (req.user.role === 'siswa') {
-        // Siswa hanya boleh melihat materi miliknya
-        query.siswa = req.user.id;
+        // Fetch student to get Jenjang and Ketunaan
+        const student = await Siswa.findById(req.user.id);
+        const studentJenjang = student?.jenjang || 'SD';
+        const studentKetunaan = student?.ketunaan || '';
+
+        // Adaptive Curriculum Logic
+        let targetJenjang = studentJenjang;
+
+        // Autis & Tunagrahita Downgrade Logic
+        // TK-SD -> PAUD (Assuming 'PAUD' exists in Materi Enum)
+        // SMP -> SD
+        // SMA -> SMP
+        if (['Autis', 'Tunagrahita'].includes(studentKetunaan)) {
+            if (['TK', 'SD'].includes(studentJenjang)) {
+                targetJenjang = 'PAUD';
+            } else if (studentJenjang === 'SMP') {
+                targetJenjang = 'SD';
+            } else if (studentJenjang === 'SMA') {
+                targetJenjang = 'SMP';
+            }
+        }
+        
+        // Show materials for this Jenjang OR assigned explicitly to this student (Legacy)
+        query = {
+            $or: [
+                { jenjang: targetJenjang },
+                { siswa: req.user.id }
+            ]
+        };
     } else {
-        // Guru/Admin bisa melihat semua atau filter by siswa
+        // Guru/Admin: Can view all, or filter by specific student (e.g. to see what they see)
         if (siswa) {
-            query.siswa = siswa;
+             const targetStudent = await Siswa.findById(siswa);
+             if (targetStudent) {
+                 const studentJenjang = targetStudent.jenjang || 'SD';
+                 const studentKetunaan = targetStudent.ketunaan || '';
+                 
+                 let targetJenjang = studentJenjang;
+                 if (['Autis', 'Tunagrahita'].includes(studentKetunaan)) {
+                    if (['TK', 'SD'].includes(studentJenjang)) {
+                        targetJenjang = 'PAUD';
+                    } else if (studentJenjang === 'SMP') {
+                        targetJenjang = 'SD';
+                    } else if (studentJenjang === 'SMA') {
+                        targetJenjang = 'SMP';
+                    }
+                 }
+
+                 query = {
+                    $or: [
+                        { jenjang: targetJenjang },
+                        { siswa: siswa }
+                    ]
+                };
+             } else {
+                 query.siswa = siswa; 
+             }
         }
     }
     
     if (kategori) {
-      query.kategori = kategori;
+        if (query.$or) {
+             query = {
+                 $and: [
+                     query,
+                     { kategori: kategori }
+                 ]
+             };
+        } else {
+             query.kategori = kategori;
+        }
     }
 
     const materials = await Materi.find(query).sort({ createdAt: -1 });
@@ -71,7 +130,7 @@ exports.cleanupLegacyMaterials = async (req, res) => {
 // Create New Materi
 exports.createMaterial = async (req, res) => {
   try {
-    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, siswa } = req.body;
+    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang } = req.body;
     
     let finalUrlMedia = '';
     let final_tipe_media = tipe_media;
@@ -121,7 +180,7 @@ exports.createMaterial = async (req, res) => {
       url_media: finalUrlMedia,
       panduan_ortu,
       langkah_langkah: parsedLangkah,
-      siswa: siswa || null // Assign to student if provided
+      jenjang: jenjang || 'SD' // Default to SD if not specified
     });
 
     const savedMateri = await newMateri.save();
@@ -135,7 +194,7 @@ exports.createMaterial = async (req, res) => {
 exports.updateMaterial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah } = req.body;
+    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang } = req.body;
 
     const materi = await Materi.findById(id);
     if (!materi) {
@@ -146,6 +205,7 @@ exports.updateMaterial = async (req, res) => {
     if (judul) materi.judul = judul;
     if (kategori) materi.kategori = kategori;
     if (panduan_ortu) materi.panduan_ortu = panduan_ortu;
+    if (jenjang) materi.jenjang = jenjang;
 
     // Handle Steps
     if (langkah_langkah) {
