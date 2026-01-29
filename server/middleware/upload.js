@@ -13,17 +13,19 @@ const storage = multer.diskStorage({
   }
 });
 
-// File Filter (Images & Videos)
+// File Filter (Images, Videos, & Documents)
 const fileFilter = (req, file, cb) => {
-  // Allow images and videos
-  const allowedTypes = /jpeg|jpg|png|webp|mp4|mkv|webm|avi|mov/;
+  // Allow images, videos, and documents
+  const allowedTypes = /jpeg|jpg|png|webp|mp4|mkv|webm|avi|mov|pdf|doc|docx|xls|xlsx|ppt|pptx/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = /jpeg|jpg|png|webp|video/.test(file.mimetype); // Simple check for video/* mimetype
+  
+  // Allow image/*, video/*, and application/* (for docs)
+  const mimetype = /image|video|application/.test(file.mimetype);
 
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb(new Error('Only images and videos are allowed!'));
+    cb(new Error('Format file tidak didukung! (Hanya Gambar, Video, PDF, Office Docs)'));
   }
 };
 

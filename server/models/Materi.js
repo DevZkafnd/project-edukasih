@@ -12,7 +12,7 @@ const MateriSchema = new mongoose.Schema({
   },
   tipe_media: {
     type: String,
-    enum: ['video_youtube', 'gambar_lokal', 'video_lokal'],
+    enum: ['video_youtube', 'gambar_lokal', 'video_lokal', 'link_eksternal', 'dokumen'],
     required: true
   },
   // url_media stores the YouTube link OR the file path (e.g., /uploads/timestamp-file.jpg)

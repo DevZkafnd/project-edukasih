@@ -211,11 +211,15 @@ const TeacherDashboard = () => {
 
     try {
       const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
-      if (formData.tipe_media === 'video_youtube') {
-        const vid = getYoutubeId(formData.url_media);
-        if (!vid) {
+      if (formData.tipe_media === 'video_youtube' || formData.tipe_media === 'link_eksternal') {
+        const vid = formData.tipe_media === 'video_youtube' ? getYoutubeId(formData.url_media) : true;
+        if (!vid && formData.tipe_media === 'video_youtube') {
           toast.error('Link YouTube tidak valid. Gunakan URL penuh seperti https://www.youtube.com/watch?v=...', { id: toastId });
           return;
+        }
+        if (!formData.url_media && formData.tipe_media === 'link_eksternal') {
+            toast.error('Link Materi tidak boleh kosong.', { id: toastId });
+            return;
         }
       } else if (formData.tipe_media === 'video_lokal') {
         if (!file && !isEdit) {
@@ -231,6 +235,29 @@ const TeacherDashboard = () => {
             toast.error(`Ukuran video terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 100MB.`, { id: toastId });
             return;
           }
+        }
+      } else if (formData.tipe_media === 'dokumen') {
+        if (!file && !isEdit) {
+            toast.error('File dokumen belum dipilih.', { id: toastId });
+            return;
+        }
+        if (file) {
+            const allowedTypes = [
+                'application/pdf', 
+                'application/msword', 
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ];
+            // Basic check, though server logic might be looser or stricter. 
+            // Controller now defaults to 'dokumen' for non-video/non-image, so client side should be lenient or just warn.
+            // Let's just check size.
+            if (file.size > MAX_VIDEO_SIZE) {
+                toast.error(`Ukuran dokumen terlalu besar (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maksimal 100MB.`, { id: toastId });
+                return;
+            }
         }
       }
       const data = new FormData();
@@ -254,7 +281,7 @@ const TeacherDashboard = () => {
       const stepsArray = formData.langkah_langkah.split('\n').filter(step => step.trim() !== '');
       stepsArray.forEach(step => data.append('langkah_langkah', step));
 
-      if (formData.tipe_media === 'video_youtube') {
+      if (formData.tipe_media === 'video_youtube' || formData.tipe_media === 'link_eksternal') {
         data.append('url_media', formData.url_media);
       } else if (file) {
         data.append('media', file);
@@ -811,11 +838,47 @@ const TeacherDashboard = () => {
                                {/* Card Body */}
                                <div className="p-5">
                                    <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-1" title={m.judul}>{m.judul}</h3>
-                                   <p className="text-sm text-gray-500 mb-4 flex items-center gap-1">
-                                       {m.tipe_media === 'video_youtube' ? 'YouTube' : m.tipe_media === 'video_lokal' ? 'Video Lokal' : 'Gambar'}
+                                   <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                       {m.tipe_media === 'video_youtube' ? 'YouTube' : m.tipe_media === 'video_lokal' ? 'Video Lokal' : m.tipe_media === 'link_eksternal' ? 'Link Eksternal' : 'Gambar'}
                                        <span className="w-1 h-1 bg-gray-300 rounded-full mx-1"></span>
                                        {new Date(m.createdAt).toLocaleDateString('id-ID')}
                                    </p>
+
+                                   {/* Document Preview Link */}
+                                   {m.tipe_media === 'dokumen' && (
+                                       <a 
+                                           href={m.url_media.startsWith('http') ? m.url_media : `/api/materi/download/${m._id}`} 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded hover:bg-orange-100 mb-4 transition"
+                                       >
+                                           <FileText size={14} /> Lihat Dokumen
+                                       </a>
+                                   )}
+                                   
+                                   {/* YouTube Link Preview */}
+                                   {m.tipe_media === 'video_youtube' && (
+                                       <a 
+                                           href={m.url_media} 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded hover:bg-red-100 mb-4 transition"
+                                       >
+                                           <Video size={14} /> Tonton di YouTube
+                                       </a>
+                                   )}
+                                   
+                                   {/* External Link Button */}
+                                   {m.tipe_media === 'link_eksternal' && (
+                                       <a 
+                                           href={m.url_media} 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 mb-4 transition"
+                                       >
+                                           <LinkIcon size={14} /> Buka Link
+                                       </a>
+                                   )}
 
                                    {/* Student History Detail */}
                                    {(() => {
@@ -837,7 +900,7 @@ const TeacherDashboard = () => {
                                                                        day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'
                                                                    })}
                                                                </span>
-                                                               <span className={`font-bold flex items-center gap-1 ${attempt.skor === 3 ? 'text-yellow-500' : attempt.skor >= 2 ? 'text-blue-500' : 'text-gray-400'}`}>
+                                                               <span className={`font-bold flex items-center gap-1 ${attempt.skor > 0 ? 'text-yellow-500' : 'text-gray-400'}`}>
                                                                    <Star size={10} fill="currentColor" /> {attempt.skor}
                                                                </span>
                                                            </div>
@@ -863,12 +926,14 @@ const TeacherDashboard = () => {
                                            <Trash size={16} /> Hapus
                                        </button>
                                    </div>
-                                   <button 
-                                        onClick={() => navigate(`/manage-quiz/${m._id}`)}
-                                        className="w-full mt-2 border border-brand-blue text-brand-blue py-2 rounded-lg font-bold text-sm hover:bg-brand-blue hover:text-white transition"
-                                   >
-                                       Kelola Kuis
-                                   </button>
+                                   {m.tipe_media !== 'link_eksternal' && (
+                                       <button 
+                                            onClick={() => navigate(`/manage-quiz/${m._id}`)}
+                                            className="w-full mt-2 border border-brand-blue text-brand-blue py-2 rounded-lg font-bold text-sm hover:bg-brand-blue hover:text-white transition"
+                                       >
+                                            <MessageSquare size={16} className="inline mr-1" /> Kelola Kuis
+                                       </button>
+                                   )}
                                </div>
                            </div>
                        ))}
@@ -982,6 +1047,8 @@ const TeacherDashboard = () => {
                           <option value="gambar_lokal">Gambar (Upload)</option>
                           <option value="video_youtube">Video YouTube</option>
                           <option value="video_lokal">Video Lokal (Upload)</option>
+                          <option value="dokumen">Dokumen (PDF/Worksheet)</option>
+                          <option value="link_eksternal">Link Eksternal (Quizizz/Lainnya)</option>
                         </select>
                         <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                       </div>
@@ -990,24 +1057,30 @@ const TeacherDashboard = () => {
 
                   {/* Media Input */}
                   <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                    {formData.tipe_media === 'video_youtube' ? (
+                    {(formData.tipe_media === 'video_youtube' || formData.tipe_media === 'link_eksternal') ? (
                       <div>
-                        <label className="block text-gray-700 font-bold mb-2">Link YouTube</label>
+                        <label className="block text-gray-700 font-bold mb-2">
+                            {formData.tipe_media === 'video_youtube' ? 'Link YouTube' : 'Link Materi Eksternal'}
+                        </label>
                         <input
                           type="url"
                           name="url_media"
                           value={formData.url_media}
                           onChange={handleInputChange}
                           className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
-                          placeholder="https://www.youtube.com/watch?v=..."
+                          placeholder={formData.tipe_media === 'video_youtube' ? "https://www.youtube.com/watch?v=..." : "https://quizizz.com/..."}
                           required
                         />
-                        <p className="text-xs text-gray-500 mt-2">Pastikan link video publik dan valid.</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                            {formData.tipe_media === 'video_youtube' ? 'Pastikan link video publik dan valid.' : 'Masukkan link lengkap ke materi/kuis eksternal.'}
+                        </p>
                       </div>
                     ) : (
                       <div>
                         <label className="block text-gray-700 font-bold mb-2">
-                          {formData.tipe_media === 'video_lokal' ? 'Upload Video' : 'Upload Gambar'}
+                          {formData.tipe_media === 'video_lokal' ? 'Upload Video' : 
+                           formData.tipe_media === 'dokumen' ? 'Upload Dokumen' : 
+                           'Upload Gambar'}
                         </label>
                         <div className="flex items-center justify-center w-full">
                           <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition">
@@ -1019,19 +1092,23 @@ const TeacherDashboard = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {formData.tipe_media === 'video_lokal' ? <Video className="text-gray-400 mb-2" size={32} /> : <ImageIcon className="text-gray-400 mb-2" size={32} />}
+                                        {formData.tipe_media === 'video_lokal' ? <Video className="text-gray-400 mb-2" size={32} /> : 
+                                         formData.tipe_media === 'dokumen' ? <FileText className="text-gray-400 mb-2" size={32} /> :
+                                         <ImageIcon className="text-gray-400 mb-2" size={32} />}
                                         <p className="mb-1 text-sm text-gray-500"><span className="font-bold">Klik untuk upload</span> atau drag and drop</p>
                                         <p className="text-xs text-gray-400 mt-1">
-                                          {formData.tipe_media === 'video_lokal' ? 'MP4, WebM (Max 50MB)' : 'JPG, PNG (Max 5MB)'}
+                                          {formData.tipe_media === 'video_lokal' ? 'MP4, WebM (Max 100MB)' : 
+                                           formData.tipe_media === 'dokumen' ? 'PDF, DOCX, XLSX (Max 100MB)' :
+                                           'JPG, PNG (Max 5MB)'}
                                         </p>
                                     </>
                                 )}
                             </div>
-                            <input type="file" className="hidden" onChange={handleFileChange} accept={formData.tipe_media === 'video_lokal' ? "video/*" : "image/*"} />
+                            <input type="file" className="hidden" onChange={handleFileChange} accept={formData.tipe_media === 'video_lokal' ? "video/*" : formData.tipe_media === 'dokumen' ? ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" : "image/*"} />
                           </label>
                         </div>
                         {formData.tipe_media === 'video_lokal' && (
-                          <p className="text-xs text-gray-500 mt-1">Format: MP4, MKV, AVI (Max 25MB). Disarankan menggunakan YouTube untuk video panjang.</p>
+                          <p className="text-xs text-gray-500 mt-1">Format: MP4, MKV, AVI (Max 100MB). Disarankan menggunakan YouTube untuk video panjang.</p>
                         )}
                         {isEdit && !file && (
                             <p className="text-xs text-orange-500 mt-2 font-medium">

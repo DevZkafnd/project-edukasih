@@ -143,13 +143,19 @@ exports.createMaterial = async (req, res) => {
       // Determine type based on mimetype
       if (req.file.mimetype.startsWith('video/')) {
         final_tipe_media = 'video_lokal';
-      } else {
+      } else if (req.file.mimetype.startsWith('image/')) {
         final_tipe_media = 'gambar_lokal';
+      } else {
+        final_tipe_media = 'dokumen';
       }
     } else if (url_media) {
-      // If YouTube link provided
+      // If URL provided (YouTube or External Link)
       finalUrlMedia = url_media;
-      final_tipe_media = 'video_youtube';
+      if (tipe_media === 'link_eksternal') {
+          final_tipe_media = 'link_eksternal';
+      } else {
+          final_tipe_media = 'video_youtube';
+      }
     } else {
       return res.status(400).json({ message: 'Media (Image or YouTube URL) is required' });
     }
@@ -237,8 +243,10 @@ exports.updateMaterial = async (req, res) => {
         materi.url_media = `/uploads/${req.file.filename}`;
         if (req.file.mimetype.startsWith('video/')) {
             materi.tipe_media = 'video_lokal';
-        } else {
+        } else if (req.file.mimetype.startsWith('image/')) {
             materi.tipe_media = 'gambar_lokal';
+        } else {
+            materi.tipe_media = 'dokumen';
         }
     } else if (url_media && tipe_media === 'video_youtube') {
         // If switching to YouTube or updating YouTube link

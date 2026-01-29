@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, PlayCircle, Info } from 'lucide-react';
+import { ArrowLeft, PlayCircle, Info, Link as LinkIcon, FileText } from 'lucide-react';
 import VideoPlayerWrapper from '../components/VideoPlayerWrapper';
 import StepViewer from '../components/StepViewer';
 import VoiceButton from '../components/VoiceButton';
@@ -85,7 +85,27 @@ const MaterialDetailPage = () => {
         )}
 
         {/* Video Section */}
-        {materi.tipe_media === 'video_youtube' ? (
+        {materi.tipe_media === 'link_eksternal' ? (
+           <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-12 shadow-md border-4 border-brand-blue flex flex-col items-center justify-center text-center gap-6">
+              <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center text-brand-blue animate-bounce">
+                  <LinkIcon size={64} />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-800">Materi Eksternal</h2>
+              <p className="text-xl text-gray-600">
+                  Materi ini ada di website lain. Klik tombol di bawah untuk membukanya.
+              </p>
+           </div>
+        ) : materi.tipe_media === 'dokumen' ? (
+           <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-12 shadow-md border-4 border-brand-blue flex flex-col items-center justify-center text-center gap-6">
+              <div className="w-32 h-32 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 animate-pulse">
+                  <FileText size={64} />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-800">Dokumen Materi</h2>
+              <p className="text-xl text-gray-600">
+                  Materi ini berupa dokumen. Klik tombol di bawah untuk mengunduh/melihatnya.
+              </p>
+           </div>
+        ) : materi.tipe_media === 'video_youtube' ? (
            <VideoPlayerWrapper url={materi.url_media} />
         ) : (materi.tipe_media === 'video_lokal' || /\.(mp4|mkv|avi|webm)$/i.test(materi.url_media)) ? (
            <div className="rounded-2xl overflow-hidden shadow-lg border-4 border-brand-blue bg-black">
@@ -131,13 +151,28 @@ const MaterialDetailPage = () => {
 
         {/* Quiz CTA */}
         <div className="pt-8 flex justify-center">
-            <Link to={`/quiz/${id}`} className="group relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-brand-yellow to-brand-green rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                <button className="relative bg-white text-brand-blue text-2xl font-bold py-4 px-12 rounded-full border-4 border-brand-blue flex items-center gap-3 hover:scale-105 transition-transform">
-                    <PlayCircle size={32} />
-                    Mulai Latihan
-                </button>
-            </Link>
+            {materi.tipe_media === 'link_eksternal' ? (
+                <a 
+                    href={materi.url_media} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group relative"
+                >
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                    <button className="relative bg-white text-brand-blue text-2xl font-bold py-4 px-12 rounded-full border-4 border-brand-blue flex items-center gap-3 hover:scale-105 transition-transform">
+                        <LinkIcon size={32} />
+                        Buka Materi / Kuis
+                    </button>
+                </a>
+            ) : (
+                <Link to={`/quiz/${id}`} className="group relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-brand-yellow to-brand-green rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                    <button className="relative bg-white text-brand-blue text-2xl font-bold py-4 px-12 rounded-full border-4 border-brand-blue flex items-center gap-3 hover:scale-105 transition-transform">
+                        <PlayCircle size={32} />
+                        Mulai Latihan
+                    </button>
+                </Link>
+            )}
         </div>
 
       </div>

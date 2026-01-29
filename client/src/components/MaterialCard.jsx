@@ -11,6 +11,10 @@ const MaterialCard = ({ materi, index = 0 }) => {
       const match = url.match(regExp);
       const id = match && match[2] && match[2].length === 11 ? match[2] : null;
       return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : 'https://placehold.co/600x400?text=Video';
+    } else if (materi.tipe_media === 'link_eksternal') {
+      return 'https://placehold.co/600x400?text=Link+Eksternal';
+    } else if (materi.tipe_media === 'dokumen') {
+      return 'https://placehold.co/600x400?text=Dokumen+Materi';
     } else {
       // Ensure URL is absolute path if it's a local file
       const safeUrl = url.startsWith('/') ? url : `/${url}`;
@@ -76,6 +80,8 @@ const MaterialCard = ({ materi, index = 0 }) => {
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md">
             {materi.tipe_media === 'video_youtube' || materi.tipe_media === 'video_lokal' ? (
               <PlayCircle className="text-red-500" size={28} />
+            ) : materi.tipe_media === 'link_eksternal' ? (
+              <LinkIcon className="text-purple-500" size={28} />
             ) : (
               <ImageIcon className="text-brand-blue" size={28} />
             )}

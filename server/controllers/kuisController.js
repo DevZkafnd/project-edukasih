@@ -23,16 +23,8 @@ exports.submitQuiz = async (req, res) => {
     });
 
     // Calculate Stars (Simple Logic)
-    // 100% = 3 stars
-    // > 60% = 2 stars
-    // > 30% = 1 star
-    // Else = 0 star
-    const percentage = (correctCount / totalQuestions) * 100;
-    let starsEarned = 0;
-    
-    if (percentage === 100) starsEarned = 3;
-    else if (percentage >= 60) starsEarned = 2;
-    else if (percentage >= 30) starsEarned = 1;
+    // 1 Correct Answer = 1 Star
+    const starsEarned = correctCount;
 
     // Update Student History
     // Note: In real app, we need authentication. Here we trust siswaId from body for demo.

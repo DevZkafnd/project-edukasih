@@ -727,14 +727,31 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                     <label className="block text-gray-700 font-bold mb-2">Kelas</label>
-                    <input
-                    type="text"
-                    name="kelas"
-                    value={editStudentForm.kelas}
-                    onChange={handleEditStudentChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
-                    placeholder="Contoh: Kelas 1, 7A"
-                    />
+                    {(() => {
+                        const classOptions = getClassOptions(editStudentForm.jenjang, editStudentForm.ketunaan);
+                        return classOptions.length > 0 ? (
+                            <select
+                                name="kelas"
+                                value={editStudentForm.kelas}
+                                onChange={handleEditStudentChange}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                            >
+                                <option value="">Pilih Kelas</option>
+                                {classOptions.map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type="text"
+                                name="kelas"
+                                value={editStudentForm.kelas}
+                                onChange={handleEditStudentChange}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                                placeholder="Contoh: Kelas 1, 7A"
+                            />
+                        );
+                    })()}
                 </div>
                 </div>
                 <div className="flex justify-end gap-3 pt-2">

@@ -6,21 +6,17 @@ const ResultModal = ({ isOpen, score, total, onRetry }) => {
   if (!isOpen) return null;
 
   // Calculate Stars
-  const percentage = (score / total) * 100;
-  let stars = 0;
+  // 1 Correct Answer = 1 Star (Direct Mapping)
+  const stars = score; 
   let message = "";
 
-  if (percentage === 100) {
-    stars = 3;
+  if (score === total) {
     message = "Luar Biasa! Kamu Hebat!";
-  } else if (percentage >= 60) {
-    stars = 2;
+  } else if (score >= total / 2) {
     message = "Bagus Sekali! Terus Belajar!";
-  } else if (percentage >= 30) {
-    stars = 1;
+  } else if (score > 0) {
     message = "Lumayan, Ayo Coba Lagi!";
   } else {
-    stars = 0;
     message = "Jangan Menyerah, Kamu Pasti Bisa!";
   }
 
@@ -31,11 +27,12 @@ const ResultModal = ({ isOpen, score, total, onRetry }) => {
         >
           <h2 className="text-4xl font-bold text-brand-blue mb-8">Hasil Belajar</h2>
           
-          <div className="flex justify-center gap-4 mb-8">
-            {[...Array(3)].map((_, i) => (
+          <div className="flex justify-center gap-2 mb-8 flex-wrap">
+            {/* Display stars based on total questions (potential max score) */}
+            {[...Array(total)].map((_, i) => (
               <div key={i}>
                 <Star 
-                  size={64} 
+                  size={Math.min(64, 300 / total)} // Dynamic size
                   fill={i < stars ? "#FFD500" : "#E5E7EB"} 
                   className={i < stars ? "text-brand-yellow drop-shadow-lg" : "text-gray-200"}
                 />
