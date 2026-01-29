@@ -847,6 +847,16 @@ const TeacherDashboard = () => {
                                             try { e.target.currentTime = 0.001; } catch (e2) { console.warn(e2); }
                                           }}
                                         />
+                                    ) : m.tipe_media === 'dokumen' ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-orange-50 text-orange-400">
+                                           <FileText size={48} strokeWidth={1.5} />
+                                           <span className="mt-2 font-bold text-xs uppercase tracking-wider">Dokumen</span>
+                                        </div>
+                                    ) : m.tipe_media === 'link_eksternal' ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-purple-50 text-purple-400">
+                                           <LinkIcon size={48} strokeWidth={1.5} />
+                                           <span className="mt-2 font-bold text-xs uppercase tracking-wider">Link Eksternal</span>
+                                        </div>
                                     ) : (
                                         <img
                                           src={normalizeMediaUrl(m.url_media)}
@@ -872,7 +882,7 @@ const TeacherDashboard = () => {
                                    {/* Document Preview Link */}
                                    {m.tipe_media === 'dokumen' && (
                                        <a 
-                                           href={m.url_media.startsWith('http') ? m.url_media : `/api/materi/download/${m._id}`} 
+                                           href={m.url_media.startsWith('http') ? m.url_media : `${API_BASE_URL}/api/materi/download/${m._id}`} 
                                            target="_blank" 
                                            rel="noopener noreferrer"
                                            className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded hover:bg-orange-100 mb-4 transition"

@@ -127,6 +127,46 @@ exports.cleanupLegacyMaterials = async (req, res) => {
     }
 };
 
+// Download Materi Document
+exports.downloadMaterial = async (req, res) => {
+  try {
+    const materi = await Materi.findById(req.params.id);
+    if (!materi) return res.status(404).json({ message: 'Materi tidak ditemukan' });
+
+    if (materi.tipe_media !== 'dokumen' && materi.tipe_media !== 'video_lokal' && materi.tipe_media !== 'gambar_lokal') {
+       return res.status(400).json({ message: 'Materi ini bukan file yang dapat didownload' });
+    }
+
+    // Determine file path
+    // url_media usually stored as '/uploads/filename.ext'
+    let relativePath = materi.url_media;
+    if (relativePath.startsWith('/')) {
+        relativePath = relativePath.substring(1); // Remove leading slash
+    }
+
+    const filePath = path.join(__dirname, '../', relativePath);
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: 'File fisik tidak ditemukan di server' });
+    }
+
+    res.download(filePath, (err) => {
+        if (err) {
+            console.error("Error downloading file:", err);
+            // Only send error if headers haven't been sent
+            if (!res.headersSent) {
+                res.status(500).send("Gagal mendownload file");
+            }
+        }
+    });
+
+  } catch (error) {
+    console.error("Download Error:", error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
 // Create New Materi
 exports.createMaterial = async (req, res) => {
   try {

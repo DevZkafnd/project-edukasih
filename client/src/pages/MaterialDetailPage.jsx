@@ -150,7 +150,7 @@ const MaterialDetailPage = () => {
         )}
 
         {/* Quiz CTA */}
-        <div className="pt-8 flex justify-center">
+        <div className="pt-8 flex flex-col items-center gap-4">
             {materi.tipe_media === 'link_eksternal' ? (
                 <a 
                     href={materi.url_media} 
@@ -164,6 +164,29 @@ const MaterialDetailPage = () => {
                         Buka Materi / Kuis
                     </button>
                 </a>
+            ) : materi.tipe_media === 'dokumen' ? (
+                <div className="flex flex-col gap-4 items-center">
+                    <a 
+                        href={materi.url_media.startsWith('http') ? materi.url_media : `${API_BASE_URL}/api/materi/download/${materi._id}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="group relative"
+                    >
+                        <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                        <button className="relative bg-white text-orange-600 text-2xl font-bold py-4 px-12 rounded-full border-4 border-orange-500 flex items-center gap-3 hover:scale-105 transition-transform">
+                            <FileText size={32} />
+                            Download / Lihat Dokumen
+                        </button>
+                    </a>
+                    
+                    {/* Optional: Allow Quiz for documents if teacher created one. For now, show it. */}
+                    <Link to={`/quiz/${id}`} className="group relative scale-90 opacity-90 hover:opacity-100 hover:scale-95 transition">
+                         <button className="bg-white text-brand-blue text-xl font-bold py-3 px-8 rounded-full border-2 border-brand-blue flex items-center gap-2">
+                            <PlayCircle size={24} />
+                            Kerjakan Kuis (Jika Ada)
+                        </button>
+                    </Link>
+                </div>
             ) : (
                 <Link to={`/quiz/${id}`} className="group relative">
                     <div className="absolute -inset-1 bg-gradient-to-r from-brand-yellow to-brand-green rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>

@@ -59,7 +59,7 @@ const MaterialCard = ({ materi, index = 0 }) => {
         whileTap={{ scale: 0.95 }}
         className={`bg-white rounded-3xl overflow-hidden shadow-lg border-b-8 ${borderColor} h-full flex flex-col`}
       >
-        <div className="relative h-48 bg-gray-100 overflow-hidden">
+        <div className="relative h-48 bg-gray-100 overflow-hidden group-hover:bg-gray-200 transition-colors">
           {materi.tipe_media === 'video_lokal' ? (
             <video
               ref={videoRef}
@@ -69,6 +69,16 @@ const MaterialCard = ({ materi, index = 0 }) => {
               muted
               playsInline
             />
+          ) : materi.tipe_media === 'dokumen' ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-orange-50 text-orange-400">
+               <FileText size={64} strokeWidth={1.5} />
+               <span className="mt-2 font-bold text-sm uppercase tracking-wider">Dokumen</span>
+            </div>
+          ) : materi.tipe_media === 'link_eksternal' ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-purple-50 text-purple-400">
+               <LinkIcon size={64} strokeWidth={1.5} />
+               <span className="mt-2 font-bold text-sm uppercase tracking-wider">Link Eksternal</span>
+            </div>
           ) : (
             <img 
               src={getThumbnail(materi.url_media)} 
