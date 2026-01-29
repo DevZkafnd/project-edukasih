@@ -253,7 +253,7 @@ const TeacherDashboard = () => {
             return;
           }
         }
-      } else if (formData.tipe_media === 'dokumen') {
+      } else if (formData.tipe_media === 'dokumen' || formData.tipe_media === 'ppt') {
         if (!file && !isEdit) {
             toast.error('File dokumen belum dipilih.', { id: toastId });
             return;
@@ -319,8 +319,8 @@ const TeacherDashboard = () => {
       } else {
         response = await axios.post('/api/materi', data, config);
         
-        // Jika Link Eksternal atau Dokumen, tidak perlu otomatis ke pembuat kuis
-        if (formData.tipe_media === 'link_eksternal' || formData.tipe_media === 'dokumen') {
+        // Jika Link Eksternal atau Dokumen atau PPT, tidak perlu otomatis ke pembuat kuis
+        if (formData.tipe_media === 'link_eksternal' || formData.tipe_media === 'dokumen' || formData.tipe_media === 'ppt') {
              toast.success('Materi berhasil disimpan!', { id: toastId });
              // Reset Form
              setFile(null);
@@ -1099,7 +1099,8 @@ const TeacherDashboard = () => {
                           <option value="gambar_lokal">Gambar (Upload)</option>
                           <option value="video_youtube">Video YouTube</option>
                           <option value="video_lokal">Video Lokal (Upload)</option>
-                          <option value="dokumen">Dokumen (PDF/Worksheet)</option>
+                          <option value="dokumen">Dokumen (PDF/Word/Excel)</option>
+                          <option value="ppt">Presentasi (PPT/PPTX)</option>
                           <option value="link_eksternal">Link Eksternal (Quizizz/Lainnya)</option>
                         </select>
                         <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -1132,6 +1133,7 @@ const TeacherDashboard = () => {
                         <label className="block text-gray-700 font-bold mb-2">
                           {formData.tipe_media === 'video_lokal' ? 'Upload Video' : 
                            formData.tipe_media === 'dokumen' ? 'Upload Dokumen' : 
+                           formData.tipe_media === 'ppt' ? 'Upload Presentasi (PPT)' :
                            'Upload Gambar'}
                         </label>
                         <div className="flex items-center justify-center w-full">
@@ -1146,17 +1148,19 @@ const TeacherDashboard = () => {
                                     <>
                                         {formData.tipe_media === 'video_lokal' ? <Video className="text-gray-400 mb-2" size={32} /> : 
                                          formData.tipe_media === 'dokumen' ? <FileText className="text-gray-400 mb-2" size={32} /> :
+                                         formData.tipe_media === 'ppt' ? <BookOpen className="text-gray-400 mb-2" size={32} /> :
                                          <ImageIcon className="text-gray-400 mb-2" size={32} />}
                                         <p className="mb-1 text-sm text-gray-500"><span className="font-bold">Klik untuk upload</span> atau drag and drop</p>
                                         <p className="text-xs text-gray-400 mt-1">
                                           {formData.tipe_media === 'video_lokal' ? 'MP4, WebM (Max 100MB)' : 
                                            formData.tipe_media === 'dokumen' ? 'PDF, DOCX, XLSX (Max 100MB)' :
+                                           formData.tipe_media === 'ppt' ? 'PPT, PPTX (Max 100MB)' :
                                            'JPG, PNG (Max 5MB)'}
                                         </p>
                                     </>
                                 )}
                             </div>
-                            <input type="file" className="hidden" onChange={handleFileChange} accept={formData.tipe_media === 'video_lokal' ? "video/*" : formData.tipe_media === 'dokumen' ? ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" : "image/*"} />
+                            <input type="file" className="hidden" onChange={handleFileChange} accept={formData.tipe_media === 'video_lokal' ? "video/*" : formData.tipe_media === 'dokumen' ? ".pdf,.doc,.docx,.xls,.xlsx" : formData.tipe_media === 'ppt' ? ".ppt,.pptx" : "image/*"} />
                           </label>
                         </div>
                         {formData.tipe_media === 'video_lokal' && (

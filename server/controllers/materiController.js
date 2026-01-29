@@ -133,7 +133,7 @@ exports.downloadMaterial = async (req, res) => {
     const materi = await Materi.findById(req.params.id);
     if (!materi) return res.status(404).json({ message: 'Materi tidak ditemukan' });
 
-    if (materi.tipe_media !== 'dokumen' && materi.tipe_media !== 'video_lokal' && materi.tipe_media !== 'gambar_lokal') {
+    if (materi.tipe_media !== 'dokumen' && materi.tipe_media !== 'video_lokal' && materi.tipe_media !== 'gambar_lokal' && materi.tipe_media !== 'ppt') {
        return res.status(400).json({ message: 'Materi ini bukan file yang dapat didownload' });
     }
 
@@ -191,6 +191,8 @@ exports.createMaterial = async (req, res) => {
         final_tipe_media = 'video_lokal';
       } else if (req.file.mimetype.startsWith('image/')) {
         final_tipe_media = 'gambar_lokal';
+      } else if (req.file.mimetype.includes('presentation') || req.file.mimetype.includes('powerpoint')) {
+        final_tipe_media = 'ppt';
       } else {
         final_tipe_media = 'dokumen';
       }
@@ -299,6 +301,8 @@ exports.updateMaterial = async (req, res) => {
             materi.tipe_media = 'video_lokal';
         } else if (req.file.mimetype.startsWith('image/')) {
             materi.tipe_media = 'gambar_lokal';
+        } else if (req.file.mimetype.includes('presentation') || req.file.mimetype.includes('powerpoint')) {
+            materi.tipe_media = 'ppt';
         } else {
             materi.tipe_media = 'dokumen';
         }

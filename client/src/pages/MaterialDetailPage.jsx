@@ -97,14 +97,14 @@ const MaterialDetailPage = () => {
                   Materi ini ada di website lain. Klik tombol di bawah untuk membukanya.
               </p>
            </div>
-        ) : materi.tipe_media === 'dokumen' ? (
+        ) : materi.tipe_media === 'dokumen' || materi.tipe_media === 'ppt' ? (
            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-12 shadow-md border-4 border-brand-blue flex flex-col items-center justify-center text-center gap-6">
               <div className="w-32 h-32 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 animate-pulse">
                   <FileText size={64} />
               </div>
-              <h2 className="text-3xl font-bold text-gray-800">Dokumen Materi</h2>
+              <h2 className="text-3xl font-bold text-gray-800">{materi.tipe_media === 'ppt' ? 'Presentasi Materi' : 'Dokumen Materi'}</h2>
               <p className="text-xl text-gray-600">
-                  Materi ini berupa dokumen. Klik tombol di bawah untuk mengunduh/melihatnya.
+                  Materi ini berupa {materi.tipe_media === 'ppt' ? 'presentasi slide' : 'dokumen'}. Klik tombol di bawah untuk melihatnya.
               </p>
            </div>
         ) : materi.tipe_media === 'video_youtube' ? (
@@ -166,7 +166,7 @@ const MaterialDetailPage = () => {
                         Buka Materi / Kuis
                     </button>
                 </a>
-            ) : materi.tipe_media === 'dokumen' ? (
+            ) : materi.tipe_media === 'dokumen' || materi.tipe_media === 'ppt' ? (
                 <div className="flex flex-col gap-4 items-center">
                     <button 
                         onClick={() => setShowPreview(true)}
@@ -175,7 +175,7 @@ const MaterialDetailPage = () => {
                         <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                         <div className="relative bg-white text-orange-600 text-2xl font-bold py-4 px-12 rounded-full border-4 border-orange-500 flex items-center gap-3 hover:scale-105 transition-transform">
                             <FileText size={32} />
-                            Lihat Dokumen
+                            {materi.tipe_media === 'ppt' ? 'Lihat Presentasi' : 'Lihat Dokumen'}
                         </div>
                     </button>
                     
