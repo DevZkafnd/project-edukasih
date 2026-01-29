@@ -38,10 +38,11 @@ exports.getMaterials = async (req, res) => {
         
         console.log(`[MATERI_FETCH] Target Jenjang calculated: ${targetJenjang}`);
 
-        // Show materials for this Jenjang OR assigned explicitly to this student (Legacy)
+        // Show materials for this Jenjang (Adaptive OR Original) OR assigned explicitly to this student
         query = {
             $or: [
-                { jenjang: targetJenjang },
+                { jenjang: targetJenjang },   // Adaptive Level (e.g., SMP for Autis SMA)
+                { jenjang: studentJenjang },  // Original Level (e.g., SMA) - Strict match per user request
                 { siswa: req.user.id }
             ]
         };
@@ -67,6 +68,7 @@ exports.getMaterials = async (req, res) => {
                  query = {
                     $or: [
                         { jenjang: targetJenjang },
+                        { jenjang: studentJenjang }, // Include original jenjang for teacher view too
                         { siswa: siswa }
                     ]
                 };
@@ -180,6 +182,9 @@ exports.downloadMaterial = async (req, res) => {
 // Create New Materi
 exports.createMaterial = async (req, res) => {
   try {
+    console.log('[CREATE_MATERI] Request Body:', req.body);
+    console.log('[CREATE_MATERI] Request File:', req.file ? req.file.filename : 'No File');
+
     const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang } = req.body;
     
     let finalUrlMedia = '';
@@ -204,11 +209,12 @@ exports.createMaterial = async (req, res) => {
       // If URL provided (YouTube or External Link)
       finalUrlMedia = url_media;
       if (tipe_media === 'link_eksternal') {
-          final_tipe_media = 'link_eksternal';
+        final_tipe_media = 'link_eksternal';
       } else {
-          final_tipe_media = 'video_youtube';
+        final_tipe_media = 'video_youtube';
       }
     } else {
+      console.error('[CREATE_MATERI] Error: Media is required');
       return res.status(400).json({ message: 'Media (Image or YouTube URL) is required' });
     }
 
@@ -238,12 +244,17 @@ exports.createMaterial = async (req, res) => {
       url_media: finalUrlMedia,
       panduan_ortu,
       langkah_langkah: parsedLangkah,
-      jenjang: jenjang || 'SD' // Default to SD if not specified
+      jenjang: jenjang || 'SD', // Default to SD if not specified
+      siswa: siswa || null // Explicitly assign to student if provided
     });
 
+    console.log('[CREATE_MATERI] Saving new material:', newMateri);
+
     const savedMateri = await newMateri.save();
+    console.log('[CREATE_MATERI] Success! ID:', savedMateri._id);
     res.status(201).json(savedMateri);
   } catch (error) {
+    console.error('[CREATE_MATERI] Database Error:', error);
     res.status(500).json({ message: error.message });
   }
 };

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { PlayCircle, Image as ImageIcon, Link as LinkIcon, FileText } from 'lucide-react';
+import { PlayCircle, Image as ImageIcon, Link as LinkIcon, FileText, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
@@ -15,6 +15,8 @@ const MaterialCard = ({ materi, index = 0 }) => {
       return 'https://placehold.co/600x400?text=Link+Eksternal';
     } else if (materi.tipe_media === 'dokumen') {
       return 'https://placehold.co/600x400?text=Dokumen+Materi';
+    } else if (materi.tipe_media === 'ppt') {
+      return 'https://placehold.co/600x400?text=Presentasi+Materi';
     } else {
       // Ensure URL is absolute path if it's a local file
       const safeUrl = url.startsWith('/') ? url : `/${url}`;
@@ -74,6 +76,11 @@ const MaterialCard = ({ materi, index = 0 }) => {
                <FileText size={64} strokeWidth={1.5} />
                <span className="mt-2 font-bold text-sm uppercase tracking-wider">Dokumen</span>
             </div>
+          ) : materi.tipe_media === 'ppt' ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-orange-50 text-orange-500">
+               <BookOpen size={64} strokeWidth={1.5} />
+               <span className="mt-2 font-bold text-sm uppercase tracking-wider">Presentasi</span>
+            </div>
           ) : materi.tipe_media === 'link_eksternal' ? (
             <div className="w-full h-full flex flex-col items-center justify-center bg-purple-50 text-purple-400">
                <LinkIcon size={64} strokeWidth={1.5} />
@@ -94,6 +101,8 @@ const MaterialCard = ({ materi, index = 0 }) => {
               <LinkIcon className="text-purple-500" size={28} />
             ) : materi.tipe_media === 'dokumen' ? (
               <FileText className="text-orange-500" size={28} />
+            ) : materi.tipe_media === 'ppt' ? (
+              <BookOpen className="text-orange-600" size={28} />
             ) : (
               <ImageIcon className="text-brand-blue" size={28} />
             )}

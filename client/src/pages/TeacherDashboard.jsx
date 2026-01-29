@@ -327,7 +327,7 @@ const TeacherDashboard = () => {
              setFormData({
                 judul: '',
                 kategori: 'akademik',
-                jenjang: 'SD',
+                jenjang: selectedJenjang || 'SD', // Keep current student jenjang
                 tipe_media: 'gambar_lokal',
                 url_media: '',
                 panduan_ortu: '',
@@ -863,6 +863,11 @@ const TeacherDashboard = () => {
                                            <FileText size={48} strokeWidth={1.5} />
                                            <span className="mt-2 font-bold text-xs uppercase tracking-wider">Dokumen</span>
                                         </div>
+                                    ) : m.tipe_media === 'ppt' ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-orange-50 text-orange-500">
+                                           <BookOpen size={48} strokeWidth={1.5} />
+                                           <span className="mt-2 font-bold text-xs uppercase tracking-wider">Presentasi</span>
+                                        </div>
                                     ) : m.tipe_media === 'link_eksternal' ? (
                                         <div className="w-full h-full flex flex-col items-center justify-center bg-purple-50 text-purple-400">
                                            <LinkIcon size={48} strokeWidth={1.5} />
@@ -885,18 +890,19 @@ const TeacherDashboard = () => {
                                <div className="p-5">
                                    <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-1" title={m.judul}>{m.judul}</h3>
                                    <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                       {m.tipe_media === 'video_youtube' ? 'YouTube' : m.tipe_media === 'video_lokal' ? 'Video Lokal' : m.tipe_media === 'link_eksternal' ? 'Link Eksternal' : m.tipe_media === 'dokumen' ? 'Dokumen' : 'Gambar'}
+                                       {m.tipe_media === 'video_youtube' ? 'YouTube' : m.tipe_media === 'video_lokal' ? 'Video Lokal' : m.tipe_media === 'link_eksternal' ? 'Link Eksternal' : m.tipe_media === 'ppt' ? 'Presentasi' : m.tipe_media === 'dokumen' ? 'Dokumen' : 'Gambar'}
                                        <span className="w-1 h-1 bg-gray-300 rounded-full mx-1"></span>
                                        {new Date(m.createdAt).toLocaleDateString('id-ID')}
                                    </p>
 
                                    {/* Document Preview Link */}
-                                   {m.tipe_media === 'dokumen' && (
+                                   {(m.tipe_media === 'dokumen' || m.tipe_media === 'ppt') && (
                                        <button 
                                            onClick={() => handlePreview(m)}
                                            className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded hover:bg-orange-100 mb-4 transition"
                                        >
-                                           <FileText size={14} /> Lihat Dokumen
+                                           {m.tipe_media === 'ppt' ? <BookOpen size={14} /> : <FileText size={14} />} 
+                                           {m.tipe_media === 'ppt' ? 'Lihat Preview PPT' : 'Lihat Dokumen'}
                                        </button>
                                    )}
                                    
