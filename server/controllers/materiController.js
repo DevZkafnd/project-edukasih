@@ -145,9 +145,11 @@ exports.downloadMaterial = async (req, res) => {
     }
 
     const filePath = path.join(__dirname, '../', relativePath);
+    console.log(`[Download Debug] Request ID: ${req.params.id}, DB URL: ${materi.url_media}, Path: ${filePath}`);
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
+        console.error(`[Download Error] File not found at: ${filePath}`);
         return res.status(404).json({ message: 'File fisik tidak ditemukan di server' });
     }
 
@@ -166,8 +168,8 @@ exports.downloadMaterial = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Download Error:", error);
-    res.status(500).json({ message: 'Terjadi kesalahan server' });
+    console.error("Download Error (Catch):", error);
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: error.message });
   }
 };
 

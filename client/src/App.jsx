@@ -15,6 +15,13 @@ import ForumPage from './pages/ForumPage';
 import { Toaster } from 'react-hot-toast';
 import { AudioProvider } from './context/AudioContext';
 
+const ForceReload = () => {
+  React.useEffect(() => {
+    window.location.reload();
+  }, []);
+  return null;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -41,6 +48,9 @@ function App() {
             <Route path="/belajar/:kategori" element={<MaterialListPage />} />
             <Route path="/materi/:id" element={<MaterialDetailPage />} />
             <Route path="/quiz/:materiId" element={<QuizSessionPage />} />
+            
+            {/* Safety net for API routes caught by React Router (PWA fallback issue) */}
+            <Route path="/api/*" element={<ForceReload />} />
           </Routes>
         </Router>
       </AudioProvider>
