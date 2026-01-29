@@ -9,12 +9,14 @@ import useAudio from '../hooks/useAudio';
 import { API_BASE_URL } from '../config';
 import Logo from '../components/Logo';
 import BackgroundDecorations from '../components/BackgroundDecorations';
+import DocumentPreviewModal from '../components/DocumentPreviewModal';
 
 const MaterialDetailPage = () => {
   const { id } = useParams();
   const [materi, setMateri] = useState(null);
   const [loading, setLoading] = useState(true);
   const { playText, stopAll } = useAudio();
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     // Stop audio when unmounting
@@ -166,18 +168,16 @@ const MaterialDetailPage = () => {
                 </a>
             ) : materi.tipe_media === 'dokumen' ? (
                 <div className="flex flex-col gap-4 items-center">
-                    <a 
-                        href={materi.url_media.startsWith('http') ? materi.url_media : `${API_BASE_URL}/api/materi/download/${materi._id}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                    <button 
+                        onClick={() => setShowPreview(true)}
                         className="group relative"
                     >
                         <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                        <button className="relative bg-white text-orange-600 text-2xl font-bold py-4 px-12 rounded-full border-4 border-orange-500 flex items-center gap-3 hover:scale-105 transition-transform">
+                        <div className="relative bg-white text-orange-600 text-2xl font-bold py-4 px-12 rounded-full border-4 border-orange-500 flex items-center gap-3 hover:scale-105 transition-transform">
                             <FileText size={32} />
-                            Download / Lihat Dokumen
-                        </button>
-                    </a>
+                            Lihat Dokumen
+                        </div>
+                    </button>
                     
                     {/* Optional: Allow Quiz for documents if teacher created one. For now, show it. */}
                     <Link to={`/quiz/${id}`} className="group relative scale-90 opacity-90 hover:opacity-100 hover:scale-95 transition">
@@ -199,6 +199,15 @@ const MaterialDetailPage = () => {
         </div>
 
       </div>
+
+      {materi && (
+        <DocumentPreviewModal 
+            isOpen={showPreview}
+            onClose={() => setShowPreview(false)}
+            document={materi}
+            downloadUrl={materi.url_media.startsWith('http') ? materi.url_media : `${API_BASE_URL}/api/materi/download/${materi._id}`}
+        />
+      )}
     </div>
   );
 };

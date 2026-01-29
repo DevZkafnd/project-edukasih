@@ -7,6 +7,7 @@ import useAuth from '../hooks/useAuth';
 import useAudio from '../hooks/useAudio';
 import { API_BASE_URL } from '../config';
 import Logo from '../components/Logo';
+import DocumentPreviewModal from '../components/DocumentPreviewModal';
 
 const SidebarItem = ({ label, iconEl, active, onClick }) => (
   <button
@@ -46,6 +47,15 @@ const TeacherDashboard = () => {
   const [filterKategori, setFilterKategori] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 6;
+
+  // Document Preview State
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState(null);
+
+  const handlePreview = (doc) => {
+    setPreviewDocument(doc);
+    setPreviewModalOpen(true);
+  };
 
   // --- Derived Data for Drill-down ---
   const availableKetunaan = useMemo(() => {
@@ -881,14 +891,12 @@ const TeacherDashboard = () => {
 
                                    {/* Document Preview Link */}
                                    {m.tipe_media === 'dokumen' && (
-                                       <a 
-                                           href={m.url_media.startsWith('http') ? m.url_media : `${API_BASE_URL}/api/materi/download/${m._id}`} 
-                                           target="_blank" 
-                                           rel="noopener noreferrer"
+                                       <button 
+                                           onClick={() => handlePreview(m)}
                                            className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded hover:bg-orange-100 mb-4 transition"
                                        >
                                            <FileText size={14} /> Lihat Dokumen
-                                       </a>
+                                       </button>
                                    )}
                                    
                                    {/* YouTube Link Preview */}
@@ -1216,6 +1224,13 @@ const TeacherDashboard = () => {
 
         </div>
       </main>
+
+      <DocumentPreviewModal 
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        document={previewDocument}
+        downloadUrl={previewDocument ? (previewDocument.url_media.startsWith('http') ? previewDocument.url_media : `${API_BASE_URL}/api/materi/download/${previewDocument._id}`) : '#'}
+      />
     </div>
   );
 };

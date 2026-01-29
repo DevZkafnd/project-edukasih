@@ -281,9 +281,17 @@ exports.updateMaterial = async (req, res) => {
     // Handle Media Update
     if (req.file) {
         // Delete old file if it was local
-        if (materi.tipe_media !== 'video_youtube' && materi.url_media.startsWith('/uploads')) {
-            const oldPath = path.join(__dirname, '..', materi.url_media);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        if (materi.tipe_media !== 'video_youtube' && materi.url_media && materi.url_media.startsWith('/uploads')) {
+            try {
+                const oldPath = path.join(__dirname, '..', materi.url_media);
+                if (fs.existsSync(oldPath)) {
+                    fs.unlinkSync(oldPath);
+                    console.log(`[UPDATE] Old file deleted: ${oldPath}`);
+                }
+            } catch (err) {
+                console.error(`[UPDATE ERROR] Failed to delete old file: ${err.message}`);
+                // Continue with update
+            }
         }
 
         materi.url_media = `/uploads/${req.file.filename}`;
@@ -296,9 +304,16 @@ exports.updateMaterial = async (req, res) => {
         }
     } else if (url_media && tipe_media === 'video_youtube') {
         // If switching to YouTube or updating YouTube link
-        if (materi.tipe_media !== 'video_youtube' && materi.url_media.startsWith('/uploads')) {
-             const oldPath = path.join(__dirname, '..', materi.url_media);
-             if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        if (materi.tipe_media !== 'video_youtube' && materi.url_media && materi.url_media.startsWith('/uploads')) {
+             try {
+                const oldPath = path.join(__dirname, '..', materi.url_media);
+                if (fs.existsSync(oldPath)) {
+                    fs.unlinkSync(oldPath);
+                    console.log(`[UPDATE] Old file deleted (switched to YouTube): ${oldPath}`);
+                }
+             } catch (err) {
+                console.error(`[UPDATE ERROR] Failed to delete old file: ${err.message}`);
+             }
         }
         materi.url_media = url_media;
         materi.tipe_media = 'video_youtube';
@@ -323,11 +338,20 @@ exports.deleteMaterial = async (req, res) => {
       return res.status(404).json({ message: 'Materi tidak ditemukan' });
     }
 
-    // 2. Delete Local File if exists
-    if (materi.tipe_media !== 'video_youtube' && materi.url_media.startsWith('/uploads')) {
-      const filePath = path.join(__dirname, '..', materi.url_media);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    // 2. Delete Local File if exists (Safe Delete)
+    if (materi.tipe_media !== 'video_youtube' && materi.url_media && materi.url_media.startsWith('/uploads')) {
+      try {
+        const filePath = path.join(__dirname, '..', materi.url_media);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`[DELETE SUCCESS] File deleted from server: ${filePath}`);
+        } else {
+          console.warn(`[DELETE WARNING] File not found on server, skipping: ${filePath}`);
+        }
+      } catch (fileErr) {
+        console.error(`[DELETE ERROR] Failed to delete physical file: ${fileErr.message}`);
+        // Continue execution to ensure DB record is still deleted
+        // so we don't have "ghost" materials in the dashboard.
       }
     }
 
