@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script Perawatan Berkala EduKasih (Jalankan Weekly)
+# Script Perawatan Berkala EduKasih (Jalankan Daily)
 # Lokasi: di root project folder
 
 echo "=== [$(date)] Mulai Maintenance ==="
@@ -17,11 +17,26 @@ docker compose exec nginx nginx -s reload
 
 # 3. Bersihkan Docker System (Hemat Space)
 # Hapus image/container/network yg tidak terpakai
-echo "3. Cleaning Up Docker Garbage..."
+echo "3. Cleaning Up Docker Garbage & Cache..."
 docker system prune -f
+docker builder prune -f
 
-# 4. Backup Database
-echo "4. Backup Database..."
+# 4. Bersihkan File Sampah & Cache Aplikasi
+echo "4. Cleaning App Cache (TTS Audio & Logs)..."
+# Hapus file audio TTS lama (> 7 hari)
+if [ -d "./server/uploads/audio" ]; then
+    find ./server/uploads/audio -name "*.mp3" -type f -mtime +7 -exec rm -f {} +
+    echo "   - Old TTS audio files cleaned."
+fi
+
+# Rotasi Log Maintenance (Keep last 1000 lines)
+if [ -f "maintenance.log" ]; then
+    tail -n 1000 maintenance.log > maintenance.log.tmp && mv maintenance.log.tmp maintenance.log
+    echo "   - Log rotated."
+fi
+
+# 5. Backup Database
+echo "5. Backup Database..."
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_DIR="./backups/mongo"
 mkdir -p $BACKUP_DIR
@@ -34,7 +49,7 @@ docker cp edukasih_mongo:/dump $BACKUP_DIR/$TIMESTAMP
 docker compose exec mongo rm -rf /dump
 
 # Hapus backup lama di VPS (> 30 hari)
-echo "5. Membersihkan backup lama..."
+echo "6. Membersihkan backup lama..."
 find $BACKUP_DIR -type d -mtime +30 -exec rm -rf {} +
 
 echo "=== [$(date)] Selesai ==="
