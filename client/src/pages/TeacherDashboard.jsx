@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown, CheckCircle, ChevronRight, FileText } from 'lucide-react';
+import { LogOut, Upload, Users, BookOpen, Star, Calendar, MessageSquare, Trash, Edit, LayoutDashboard, Menu, X, Image as ImageIcon, Video, ChevronDown, CheckCircle, ChevronRight, FileText, Link as LinkIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
 import useAudio from '../hooks/useAudio';
@@ -170,6 +170,13 @@ const TeacherDashboard = () => {
         fetchData();
     }
   }, [selectedStudent]);
+
+  // Auto-fill Jenjang when switching to upload tab or when context changes
+  useEffect(() => {
+    if (activeTab === 'upload' && !isEdit && selectedJenjang) {
+        setFormData(prev => ({ ...prev, jenjang: selectedJenjang }));
+    }
+  }, [activeTab, selectedJenjang, isEdit]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -1033,20 +1040,29 @@ const TeacherDashboard = () => {
                     <div>
                       <label className="block text-gray-700 font-bold mb-2">Pilih Jenjang</label>
                       <div className="relative">
-                        <select
-                          name="jenjang"
-                          value={formData.jenjang}
-                          onChange={handleInputChange}
-                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
-                          required
-                        >
-                           <option value="PAUD">PAUD</option>
-                           <option value="TK">TK</option>
-                           <option value="SD">SD</option>
-                           <option value="SMP">SMP</option>
-                           <option value="SMA">SMA</option>
-                        </select>
-                         <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                        {selectedJenjang && !isEdit ? (
+                             <div className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 font-medium flex items-center justify-between">
+                                <span>{selectedJenjang} <span className="text-xs text-brand-blue font-normal ml-2">(Otomatis Terpilih)</span></span>
+                                <CheckCircle size={20} className="text-brand-blue" />
+                             </div>
+                        ) : (
+                            <>
+                                <select
+                                  name="jenjang"
+                                  value={formData.jenjang}
+                                  onChange={handleInputChange}
+                                  className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                                  required
+                                >
+                                   <option value="PAUD">PAUD</option>
+                                   <option value="TK">TK</option>
+                                   <option value="SD">SD</option>
+                                   <option value="SMP">SMP</option>
+                                   <option value="SMA">SMA</option>
+                                </select>
+                                <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            </>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1">Materi akan tampil untuk semua siswa di jenjang ini.</p>
                     </div>
