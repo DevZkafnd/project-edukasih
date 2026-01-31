@@ -130,6 +130,7 @@ exports.login = async (req, res) => {
         role: user.role,
         nama_orang_tua: user.nama_orang_tua,
         jenjang: user.jenjang,
+        ketunaan: user.ketunaan,
         kelas: user.kelas,
         posisi: user.posisi,
         mata_pelajaran: user.mata_pelajaran
@@ -167,6 +168,7 @@ exports.getMe = async (req, res) => {
       role: userObj.role,
       nama_orang_tua: userObj.nama_orang_tua,
       jenjang: userObj.jenjang,
+      ketunaan: userObj.ketunaan,
       kelas: userObj.kelas,
       skor_bintang: userObj.skor_bintang,
       posisi: userObj.posisi,

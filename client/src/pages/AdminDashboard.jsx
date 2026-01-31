@@ -7,6 +7,36 @@ import useAuth from '../hooks/useAuth';
 import useAudio from '../hooks/useAudio';
 import Logo from '../components/Logo';
 
+const getClassOptions = (jenjang, ketunaan) => {
+  if (!jenjang) return [];
+
+  // Mapping Kode Ketunaan
+  const KETUNAAN_CODES = {
+    'Tunanetra': 'A',
+    'Tunarungu': 'B',
+    'Tunagrahita': 'C',
+    'Tunadaksa': 'D',
+    'Autis': 'Autis'
+  };
+
+  const suffix = ketunaan && KETUNAAN_CODES[ketunaan] ? `-${KETUNAAN_CODES[ketunaan]}` : '';
+
+  let baseClasses = [];
+  if (jenjang === 'TK') baseClasses = ['Kelompok A', 'Kelompok B'];
+  else if (jenjang === 'SD') baseClasses = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'];
+  else if (jenjang === 'SMP') baseClasses = ['Kelas 7', 'Kelas 8', 'Kelas 9'];
+  else if (jenjang === 'SMA') baseClasses = ['Kelas 10', 'Kelas 11', 'Kelas 12'];
+  
+  if (baseClasses.length === 0) return [];
+
+  // Jika ada ketunaan, tambahkan suffix ke nama kelas
+  if (suffix) {
+    return baseClasses.map(cls => `${cls}${suffix}`);
+  }
+
+  return baseClasses;
+};
+
 const AdminDashboard = () => {
   const { logout, token } = useAuth();
   const { stopAll } = useAudio();
@@ -23,9 +53,9 @@ const AdminDashboard = () => {
 
   // Student State
   const [students, setStudents] = useState([]);
-  const [createStudent, setCreateStudent] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', jenjang: '', kelas: '' });
+  const [createStudent, setCreateStudent] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', jenjang: '', kelas: '', ketunaan: '' });
   const [editingStudent, setEditingStudent] = useState(null);
-  const [editStudentForm, setEditStudentForm] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', skor_bintang: 0, jenjang: '', kelas: '' });
+  const [editStudentForm, setEditStudentForm] = useState({ nama: '', username: '', password: '', nama_orang_tua: '', skor_bintang: 0, jenjang: '', kelas: '', ketunaan: '' });
   const [studentSearch, setStudentSearch] = useState('');
   const [studentPage, setStudentPage] = useState(1);
   const studentsPageSize = 8;
@@ -520,14 +550,21 @@ const AdminDashboard = () => {
                             <option value="SMP">SMP</option>
                             <option value="SMA">SMA</option>
                          </select>
-                         <input 
-                            type="text" 
-                            placeholder="Kelas (contoh: Kelas 1, 7A)"
+                         <select 
                             className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue outline-none w-full md:w-1/3"
                             value={createStudent.kelas}
                             onChange={(e) => setCreateStudent({...createStudent, kelas: e.target.value})}
                             required
-                        />
+                         >
+                            <option value="">Pilih Kelas</option>
+                            {getClassOptions(createStudent.jenjang, createStudent.ketunaan).length > 0 ? (
+                                getClassOptions(createStudent.jenjang, createStudent.ketunaan).map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))
+                            ) : (
+                                <option value="" disabled>Pilih Jenjang Dulu</option>
+                            )}
+                         </select>
                     </div>
 
                     <button 

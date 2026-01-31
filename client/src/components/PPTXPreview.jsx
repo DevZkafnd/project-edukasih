@@ -45,6 +45,7 @@ const PPTXPreview = ({ file, url }) => {
 
     if (file) {
         setLoading(true);
+        console.log("[PPTXPreview] Processing file object:", file.name);
         const reader = new FileReader();
         reader.onload = (e) => {
             processPPTX(e.target.result);
@@ -52,16 +53,22 @@ const PPTXPreview = ({ file, url }) => {
         reader.readAsArrayBuffer(file);
     } else if (url) {
         setLoading(true);
+        console.log("[PPTXPreview] Fetching URL:", url);
         fetch(url)
-            .then(res => res.arrayBuffer())
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.arrayBuffer();
+            })
             .then(data => {
                 processPPTX(data);
             })
             .catch(err => {
-                console.error("Fetch error:", err);
-                setError("Gagal mengunduh file PPTX.");
+                console.error("[PPTXPreview] Fetch error:", err);
+                setError(`Gagal mengunduh file PPTX (${err.message}).`);
                 setLoading(false);
             });
+    } else {
+        console.warn("[PPTXPreview] No file or URL provided");
     }
 
     // Cleanup function to remove event listeners and clear content
@@ -117,6 +124,7 @@ const PPTXPreview = ({ file, url }) => {
         <div className="bg-gray-900 text-white p-2 flex justify-between items-center px-4 shrink-0">
           <span className="text-sm font-semibold">Preview Materi (PPTX)</span>
           <button 
+            type="button"
             onClick={toggleFullscreen} 
             className="text-xs bg-brand-blue hover:bg-blue-600 px-3 py-1 rounded transition" 
           >

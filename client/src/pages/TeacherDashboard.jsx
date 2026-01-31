@@ -1060,6 +1060,8 @@ const TeacherDashboard = () => {
                       name="judul"
                       value={formData.judul}
                       onChange={handleInputChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onKeyUp={(e) => e.stopPropagation()}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
                       placeholder="Contoh: Belajar Berhitung 1-10"
                       required
@@ -1097,7 +1099,6 @@ const TeacherDashboard = () => {
                           className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                           required
                         >
-                          <option value="PAUD">PAUD</option>
                           <option value="TK">TK</option>
                           <option value="SD">SD</option>
                           <option value="SMP">SMP</option>
@@ -1242,6 +1243,8 @@ const TeacherDashboard = () => {
                       name="panduan_ortu"
                       value={formData.panduan_ortu}
                       onChange={handleInputChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onKeyUp={(e) => e.stopPropagation()}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-24"
                       placeholder="Instruksi pendampingan..."
                     />
@@ -1254,6 +1257,8 @@ const TeacherDashboard = () => {
                       name="langkah_langkah"
                       value={formData.langkah_langkah}
                       onChange={handleInputChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      onKeyUp={(e) => e.stopPropagation()}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-32"
                       placeholder="1. Buka buku...&#10;2. Ambil pensil..."
                     />

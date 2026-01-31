@@ -23,17 +23,18 @@ exports.getMaterials = async (req, res) => {
         let targetJenjang = studentJenjang;
 
         // Autis & Tunagrahita Downgrade Logic
-        // TK-SD -> PAUD (Assuming 'PAUD' exists in Materi Enum)
+        // SD -> TK (Karena PAUD tidak ada)
         // SMP -> SD
         // SMA -> SMP
         if (['Autis', 'Tunagrahita'].includes(studentKetunaan)) {
-            if (['TK', 'SD'].includes(studentJenjang)) {
-                targetJenjang = 'PAUD';
+            if (studentJenjang === 'SD') {
+                targetJenjang = 'TK';
             } else if (studentJenjang === 'SMP') {
                 targetJenjang = 'SD';
             } else if (studentJenjang === 'SMA') {
                 targetJenjang = 'SMP';
             }
+            // TK tetap TK (tidak turun ke PAUD)
         }
         
         console.log(`[MATERI_FETCH] Target Jenjang calculated: ${targetJenjang}`);
@@ -56,8 +57,8 @@ exports.getMaterials = async (req, res) => {
                  
                  let targetJenjang = studentJenjang;
                  if (['Autis', 'Tunagrahita'].includes(studentKetunaan)) {
-                    if (['TK', 'SD'].includes(studentJenjang)) {
-                        targetJenjang = 'PAUD';
+                    if (studentJenjang === 'SD') {
+                        targetJenjang = 'TK';
                     } else if (studentJenjang === 'SMP') {
                         targetJenjang = 'SD';
                     } else if (studentJenjang === 'SMA') {

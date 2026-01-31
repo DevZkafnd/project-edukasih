@@ -39,7 +39,7 @@ const MateriSchema = new mongoose.Schema({
   },
   jenjang: {
     type: String,
-    enum: ['PAUD', 'TK', 'SD', 'SMP', 'SMA'],
+    enum: ['TK', 'SD', 'SMP', 'SMA'],
     default: 'SD' // Default untuk migrasi
   },
   // Deprecated: siswa specific assignment is being replaced by jenjang
