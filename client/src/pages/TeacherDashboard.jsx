@@ -482,7 +482,15 @@ const TeacherDashboard = () => {
             </>
           )}
           
-          <div className="pt-4 mt-4 border-t">
+          <div className="pt-4 mt-4 border-t space-y-2">
+            <Link 
+              to="/laporan-kuis" 
+              onClick={() => setIsSidebarOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-brand-blue rounded-xl transition-all"
+            >
+                <FileText size={20} />
+                <span className="font-medium">Laporan Hasil Kuis</span>
+            </Link>
             <Link 
               to="/forum" 
               onClick={() => setIsSidebarOpen(false)}

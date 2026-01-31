@@ -3,7 +3,7 @@ import { Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 
-const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
+const QuizCard = ({ question, currentQuestionIndex, onAnswer, selectedAnswer, correctAnswer, stats }) => {
   // Grid layout for answers
   return (
     <div className="w-full max-w-4xl mx-auto font-comic">
@@ -29,6 +29,7 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
         {question.opsi_jawaban.map((opsi, index) => {
           let buttonClass = "bg-white border-b-8 border-gray-200 text-gray-700 hover:border-brand-blue hover:-translate-y-1";
           let icon = null;
+          let progressBar = null;
 
           // Visual Feedback Logic
           if (selectedAnswer !== null) {
@@ -40,6 +41,24 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
               icon = <X size={40} className="absolute top-2 right-2 text-red-600 drop-shadow-sm" />;
             } else {
               buttonClass = "bg-gray-50 border-gray-200 text-gray-400 opacity-50 cursor-not-allowed";
+            }
+
+            // Progress Bar Logic (Only show if answered)
+            if (stats && stats[currentQuestionIndex] && stats[currentQuestionIndex].percentages && stats[currentQuestionIndex].percentages[index] !== undefined) {
+                const percentage = stats[currentQuestionIndex].percentages[index];
+                progressBar = (
+                  <div className="absolute bottom-0 left-0 w-full h-4 bg-gray-200 rounded-b-[2rem] overflow-hidden mt-2">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${percentage}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full bg-blue-500"
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
+                      {percentage}% Siswa Memilih Ini
+                    </span>
+                  </div>
+                );
             }
           }
 
@@ -56,14 +75,15 @@ const QuizCard = ({ question, onAnswer, selectedAnswer, correctAnswer }) => {
               className={`relative p-8 rounded-[2rem] text-2xl font-bold shadow-lg transition-all flex items-center justify-center min-h-[140px] ${buttonClass}`}
             >
               {icon}
+              {progressBar}
               {opsi.gambar ? (
                 <img 
                   src={opsi.gambar.startsWith('/') ? `${API_BASE_URL}${opsi.gambar}` : `${API_BASE_URL}/${opsi.gambar}`} 
                   alt={`Jawaban ${index + 1}`} 
-                  className="h-24 object-contain hover:scale-110 transition-transform" 
+                  className="h-24 object-contain hover:scale-110 transition-transform mb-2" 
                 />
               ) : (
-                <span style={{ fontFamily: 'Comic Neue, cursive' }}>{opsi.teks}</span>
+                <span style={{ fontFamily: 'Comic Neue, cursive', marginBottom: progressBar ? '1rem' : '0' }}>{opsi.teks}</span>
               )}
             </motion.button>
           );

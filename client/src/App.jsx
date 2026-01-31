@@ -11,6 +11,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import QuizEditorPage from './pages/QuizEditorPage';
 import ForumPage from './pages/ForumPage';
+import QuizReportPage from './pages/QuizReportPage';
 
 import { Toaster } from 'react-hot-toast';
 import { AudioProvider } from './context/AudioContext';
@@ -44,7 +45,16 @@ function App() {
             <Route path="/dashboard-guru" element={<RequireRole role="guru"><TeacherDashboard /></RequireRole>} />
             <Route path="/dashboard-admin" element={<RequireRole role="admin"><AdminDashboard /></RequireRole>} />
             <Route path="/manage-quiz/:materiId" element={<QuizEditorPage />} />
-            <Route path="/forum" element={<ForumPage />} />
+            <Route path="/forum" element={
+              <RequireRole role="guru">
+                <ForumPage />
+              </RequireRole>
+            } />
+            <Route path="/laporan-kuis" element={
+              <RequireRole role="guru">
+                <QuizReportPage />
+              </RequireRole>
+            } />
             <Route path="/belajar/:kategori" element={<MaterialListPage />} />
             <Route path="/materi/:id" element={<MaterialDetailPage />} />
             <Route path="/quiz/:materiId" element={<QuizSessionPage />} />

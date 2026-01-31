@@ -60,6 +60,7 @@ const SiswaSchema = new mongoose.Schema({
     },
     riwayat_percobaan: [{
       skor: Number,
+      jawaban: [Number], // Array indeks jawaban siswa [0, 1, 0, 2...]
       tanggal: {
         type: Date,
         default: Date.now

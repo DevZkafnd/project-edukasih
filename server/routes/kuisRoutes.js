@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 const kuisController = require('../controllers/kuisController');
 
+// GET /api/kuis/stats/:materiId -> Get Quiz Stats & Leaderboard
+router.get('/stats/:materiId', kuisController.getQuizStats);
+
+// GET /api/kuis/report/:materiId -> Get Quiz Report Data
+router.get('/report/:materiId', kuisController.getQuizReport);
+
 // GET /api/kuis/:materiId -> Get Quiz for specific Materi
 router.get('/:materiId', kuisController.getQuizByMateri);
 
