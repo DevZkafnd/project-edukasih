@@ -6,9 +6,24 @@ const PPTXPreview = ({ url }) => {
           <p>URL tidak tersedia untuk preview.</p>
       </div>
   );
+
+  // --- FIX: UBAH RELATIVE PATH JADI ABSOLUTE URL ---
   
-  // Pastikan URL di-encode agar aman
-  const encodedUrl = encodeURIComponent(url);
+  // 1. Ambil domain website saat ini (misal: `https://edukasih.my.id`)
+  const baseUrl = window.location.origin;
+
+  // 2. Gabungkan domain + path file
+  // Logic: Jika url tidak diawali "http", gabungkan dengan baseUrl
+  const fullUrl = url.startsWith('http') 
+    ? url 
+    : `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+
+  console.log("[PPTXPreview] Final Full URL:", fullUrl);
+  // Sekarang harusnya jadi: `https://edukasih.my.id/uploads/1769...pptx`
+  // ---------------------------------------------------
+
+  // Encode URL agar aman dibaca server Microsoft
+  const encodedUrl = encodeURIComponent(fullUrl);
   
   // URL Magic dari Microsoft Office Web Viewer
   const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
