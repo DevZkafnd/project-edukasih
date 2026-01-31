@@ -1255,7 +1255,13 @@ const TeacherDashboard = () => {
 
                   {/* Langkah-langkah */}
                   <div>
-                    <label className="block text-gray-700 font-bold mb-2">Langkah-Langkah (Satu per baris)</label>
+                    <label className="block text-gray-700 font-bold mb-2">
+                        Tahapan Materi (Metode Drill / Menunjukkan & Menyebutkan)
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                        Tuliskan tahapan materi satu per satu agar siswa bisa mengikuti perlahan. <br/>
+                        Contoh: "1. Ini adalah Buah Apel", "2. Ayo sebutkan: A-PEL", "3. Tunjuk mana yang berwarna Merah".
+                    </p>
                     <textarea
                       name="langkah_langkah"
                       value={formData.langkah_langkah}
@@ -1263,7 +1269,7 @@ const TeacherDashboard = () => {
                       onKeyDown={(e) => e.stopPropagation()}
                       onKeyUp={(e) => e.stopPropagation()}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-32"
-                      placeholder="1. Buka buku...&#10;2. Ambil pensil..."
+                      placeholder="1. Ini adalah...&#10;2. Ayo tirukan..."
                     />
                   </div>
 

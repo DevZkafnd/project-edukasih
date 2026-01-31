@@ -125,31 +125,26 @@ const MaterialDetailPage = () => {
            </div>
         )}
 
-        {/* Content Section */}
-        {isVokasi ? (
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-2xl font-bold text-brand-blue">Langkah-langkah</h2>
-                    <VoiceButton text="Baca Langkah" audioScript="Ikuti langkah-langkah berikut ini." />
+        {/* Content Section - ALWAYS Show StepViewer for "Show & Tell" Flow */}
+        <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-brand-blue">Tahapan Belajar</h2>
+                <VoiceButton text="Dengarkan Instruksi" audioScript="Ikuti tahapan belajar berikut ini. Dengarkan dan tirukan ya!" />
+            </div>
+            {materi.langkah_langkah && materi.langkah_langkah.length > 0 ? (
+                <StepViewer steps={materi.langkah_langkah} />
+            ) : (
+                <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-md border-2 border-brand-yellow/50">
+                    <h2 className="text-2xl font-bold text-brand-blue mb-4">Ayo Belajar</h2>
+                    <p className="text-xl leading-loose text-gray-700 font-medium">
+                        Mari kita pelajari tentang {materi.judul}. Perhatikan gambar atau video di atas, lalu ikuti petunjuk Ibu Guru ya!
+                    </p>
+                    <div className="mt-4 flex justify-center">
+                        <VoiceButton text="Bacakan Penjelasan" audioScript={`Mari kita pelajari tentang ${materi.judul}. Perhatikan gambar atau video di atas, lalu ikuti petunjuk Ibu Guru ya!`} />
+                    </div>
                 </div>
-                {materi.langkah_langkah && materi.langkah_langkah.length > 0 ? (
-                    <StepViewer steps={materi.langkah_langkah} />
-                ) : (
-                    <p className="text-gray-500 italic text-center">Belum ada langkah-langkah.</p>
-                )}
-            </div>
-        ) : (
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-md border-2 border-brand-yellow/50">
-                <h2 className="text-2xl font-bold text-brand-blue mb-4">Ayo Membaca</h2>
-                <p className="text-xl leading-loose text-gray-700 font-medium">
-                    {/* Placeholder text for academic if no content field exists yet. 
-                        Maybe we should have added a 'deskripsi' or 'isi_materi' field?
-                        For now, display generic text or title repetition.
-                    */}
-                    Mari kita pelajari tentang {materi.judul}. Perhatikan video di atas dengan seksama ya!
-                </p>
-            </div>
-        )}
+            )}
+        </div>
 
         {/* Quiz CTA */}
         <div className="pt-8 flex flex-col items-center gap-4">
