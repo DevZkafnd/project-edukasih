@@ -1221,8 +1221,11 @@ const TeacherDashboard = () => {
                                 <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
                                     <BookOpen size={16} /> Preview Tampilan Siswa:
                                 </h3>
-                                <div className="h-[400px] border rounded-lg overflow-hidden bg-gray-100">
-                                    <PPTXPreview file={file} />
+                                <div className="p-4 border rounded-lg bg-blue-50 text-blue-700 text-sm flex items-center gap-2">
+                                    <AlertCircle size={20} />
+                                    <span>
+                                        Preview PPT akan tersedia setelah materi diupload (Menggunakan Microsoft Office Online Viewer).
+                                    </span>
                                 </div>
                              </div>
                         )}
