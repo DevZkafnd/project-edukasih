@@ -185,7 +185,7 @@ exports.createMaterial = async (req, res) => {
     console.log('[CREATE_MATERI] Request Body:', req.body);
     console.log('[CREATE_MATERI] Request File:', req.file ? req.file.filename : 'No File');
 
-    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang } = req.body;
+    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang, siswa } = req.body;
     
     let finalUrlMedia = '';
     let final_tipe_media = tipe_media;

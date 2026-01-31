@@ -63,6 +63,17 @@ const PPTXPreview = ({ file, url }) => {
                 setLoading(false);
             });
     }
+
+    // Cleanup function to remove event listeners and clear content
+    return () => {
+        if (window.$) {
+            window.$("#pptx-result").html("");
+            // Remove keyboard listeners attached by pptxjs to prevent "Input Teks Macet"
+            // Note: pptxjs likely attaches to document/window without namespace
+            window.$(document).off("keyup"); 
+            window.$(document).off("keydown");
+        }
+    };
   }, [file, url]);
 
   const toggleFullscreen = () => {
