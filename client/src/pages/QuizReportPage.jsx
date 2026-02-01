@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FileText, Download, ArrowLeft, Search, Filter } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import toast from 'react-hot-toast';
 import Logo from '../components/Logo';
 
 const QuizReportPage = () => {
@@ -11,6 +12,8 @@ const QuizReportPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [reportData, setReportData] = useState([]);
+  const [reportStats, setReportStats] = useState({});
+  const [quizQuestions, setQuizQuestions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -34,54 +37,137 @@ const QuizReportPage = () => {
     setSelectedMaterial(materi);
     setLoadingReport(true);
     try {
-      const response = await axios.get(`/api/kuis/report/${materi._id}`);
-      setReportData(response.data.data);
+      // Fetch Report Data (Students & Stats)
+      const reportRes = await axios.get(`/api/kuis/report/${materi._id}`);
+      setReportData(reportRes.data.data);
+      setReportStats(reportRes.data.stats || {});
+
+      // Fetch Quiz Content (Questions)
+      try {
+        const quizRes = await axios.get(`/api/kuis/${materi._id}`);
+        setQuizQuestions(quizRes.data.pertanyaan || []);
+      } catch (err) {
+        console.warn("Quiz content not found or error:", err);
+        setQuizQuestions([]);
+      }
+
       setLoadingReport(false);
     } catch (error) {
       console.error("Error fetching report:", error);
       setReportData([]);
+      setReportStats({});
       setLoadingReport(false);
     }
   };
 
   const generatePDF = () => {
-    if (!selectedMaterial || reportData.length === 0) return;
+    if (!selectedMaterial || reportData.length === 0) {
+        toast.error("Tidak ada data laporan untuk diunduh.");
+        return;
+    }
 
-    const doc = new jsPDF();
+    const toastId = toast.loading("Membuat PDF...");
 
-    // Header
-    doc.setFontSize(18);
-    doc.text(`Laporan Hasil Kuis: ${selectedMaterial.judul}`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Jenjang: ${selectedMaterial.jenjang || '-'}`, 14, 28);
-    doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 34);
+    try {
+        const doc = new jsPDF();
 
-    // Table
-    const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan Ke", "Skor Bintang", "Waktu Pengerjaan"];
-    const tableRows = [];
+        // --- Page 1: Student List ---
+        doc.setFontSize(18);
+        doc.text(`Laporan Hasil Kuis: ${selectedMaterial.judul}`, 14, 20);
+        doc.setFontSize(12);
+        doc.text(`Jenjang: ${selectedMaterial.jenjang || '-'}`, 14, 28);
+        doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 34);
 
-    reportData.forEach((row, index) => {
-      const rowData = [
-        index + 1,
-        row.nama,
-        row.kelas || '-',
-        row.attemptNumber,
-        row.skor,
-        new Date(row.waktu).toLocaleString('id-ID')
-      ];
-      tableRows.push(rowData);
-    });
+        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Skor", "Waktu"];
+        const tableRows = [];
 
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 40,
-      theme: 'grid',
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [66, 133, 244] } // Brand Blueish
-    });
+        reportData.forEach((row, index) => {
+        const rowData = [
+            index + 1,
+            row.nama,
+            row.kelas || '-',
+            row.attemptNumber,
+            row.skor,
+            new Date(row.waktu).toLocaleString('id-ID')
+        ];
+        tableRows.push(rowData);
+        });
 
-    doc.save(`Laporan_Kuis_${selectedMaterial.judul.replace(/\s+/g, '_')}.pdf`);
+        doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 40,
+        theme: 'grid',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [66, 133, 244] }
+        });
+
+        // --- Page 2: Question Analysis (Item Analysis) ---
+        if (quizQuestions.length > 0) {
+            doc.addPage();
+            doc.setFontSize(16);
+            doc.text(`Analisis Butir Soal (Item Analysis)`, 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Distribusi jawaban berdasarkan jenjang: ${selectedMaterial.jenjang}`, 14, 28);
+            
+            let currentY = 40;
+
+            quizQuestions.forEach((q, qIdx) => {
+                // Check if we need a new page
+                if (currentY > 250) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+
+                // Question Text
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                const splitTitle = doc.splitTextToSize(`${qIdx + 1}. ${q.teks_pertanyaan}`, 180);
+                doc.text(splitTitle, 14, currentY);
+                currentY += (splitTitle.length * 5) + 2;
+
+                // Stats Table for this question
+                const stats = reportStats[qIdx];
+                const statRows = [];
+                
+                q.opsi_jawaban.forEach((opt, optIdx) => {
+                    const isCorrect = q.indeks_jawaban_benar === optIdx;
+                    const count = stats && stats.distribution ? (stats.distribution[optIdx] || 0) : 0;
+                    const percent = stats && stats.percentages ? (stats.percentages[optIdx] || 0) : 0;
+                    
+                    statRows.push([
+                        optIdx === 0 ? 'A' : optIdx === 1 ? 'B' : 'C',
+                        opt.teks + (isCorrect ? ' (Kunci Jawaban)' : ''),
+                        `${count} Siswa`,
+                        `${percent}%`
+                    ]);
+                });
+
+                doc.autoTable({
+                    head: [['Opsi', 'Jawaban', 'Jumlah Memilih', 'Persentase']],
+                    body: statRows,
+                    startY: currentY,
+                    theme: 'striped',
+                    styles: { fontSize: 9 },
+                    headStyles: { fillColor: [100, 100, 100] },
+                    columnStyles: {
+                        0: { cellWidth: 15, halign: 'center' },
+                        2: { cellWidth: 30, halign: 'center' },
+                        3: { cellWidth: 25, halign: 'center' }
+                    },
+                    margin: { left: 14 }
+                });
+
+                currentY = doc.lastAutoTable.finalY + 15;
+            });
+        }
+
+        doc.save(`Laporan_Kuis_${selectedMaterial.judul.replace(/\s+/g, '_')}.pdf`);
+        toast.success("PDF Berhasil Diunduh!", { id: toastId });
+    } catch (error) {
+        console.error("PDF Generation Error:", error);
+        toast.error("Gagal membuat PDF. Silakan coba lagi.", { id: toastId });
+    }
   };
 
   const filteredMaterials = materials.filter(m => 

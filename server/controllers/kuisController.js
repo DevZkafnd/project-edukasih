@@ -189,45 +189,73 @@ exports.getQuizReport = async (req, res) => {
         const jenjang = materi.jenjang; 
 
         // 2. Find students in this jenjang with history
+        // Use regex for case-insensitive match on jenjang if needed, but exact match is safer for strict logic
         const students = await Siswa.find({ 
-            jenjang: jenjang,
             'history.materi': materiId 
-        }).select('nama kelas history');
+        }).select('nama kelas history jenjang');
 
         const reportData = [];
+        const questionStats = {}; // { qIndex: { optionIndex: count } }
 
         students.forEach(student => {
             const historyItem = student.history.find(h => h.materi.toString() === materiId);
             if (historyItem && historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
-                // Get all attempts or best? 
-                // User said "terlihat di riwayat pengerjaan dan ingat perjenjang itu berbeda"
-                // "mengerjakan jam berapa saja" -> Maybe list ALL attempts?
-                // Let's return a flat list of attempts for maximum detail in the PDF
+                const attempts = historyItem.riwayat_percobaan;
                 
-                historyItem.riwayat_percobaan.forEach((attempt, idx) => {
-                    reportData.push({
-                        studentId: student._id,
-                        nama: student.nama,
-                        kelas: student.kelas,
-                        attemptNumber: idx + 1,
-                        skor: attempt.skor,
-                        waktu: attempt.tanggal
-                    });
+                // Best Attempt Logic
+                const bestAttempt = attempts.reduce((prev, current) => (prev.skor >= current.skor ? prev : current));
+
+                // Add to Report Data
+                reportData.push({
+                    nama: student.nama,
+                    kelas: student.kelas,
+                    attemptNumber: attempts.length,
+                    skor: bestAttempt.skor,
+                    waktu: bestAttempt.tanggal,
+                    // We can include 'jenjang' if we want to show mixed jenjangs, but usually it's filtered
+                    jenjang: student.jenjang
                 });
+
+                // Add to Stats (Only if student jenjang matches materi jenjang - strictly per user request)
+                // "persentase ... dari semua siswa yang ada di jenjang tersebut"
+                if (student.jenjang === jenjang) {
+                    if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
+                        bestAttempt.jawaban.forEach((ansIdx, qIdx) => {
+                            if (!questionStats[qIdx]) questionStats[qIdx] = {};
+                            if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
+                            questionStats[qIdx][ansIdx]++;
+                        });
+                    }
+                }
             }
         });
 
-        // Sort by Class, then Name, then Time
+        // Sort by Score desc, then Time asc
         reportData.sort((a, b) => {
-            if (a.kelas !== b.kelas) return a.kelas.localeCompare(b.kelas);
-            if (a.nama !== b.nama) return a.nama.localeCompare(b.nama);
+            if (b.skor !== a.skor) return b.skor - a.skor;
             return new Date(a.waktu) - new Date(b.waktu);
+        });
+
+        // Calculate Percentages for Stats
+        const finalStats = {};
+        Object.keys(questionStats).forEach(qIdx => {
+            const options = questionStats[qIdx];
+            const total = Object.values(options).reduce((a, b) => a + b, 0);
+            finalStats[qIdx] = {
+                totalVotes: total,
+                distribution: options,
+                percentages: {}
+            };
+            Object.keys(options).forEach(optIdx => {
+                finalStats[qIdx].percentages[optIdx] = Math.round((options[optIdx] / total) * 100);
+            });
         });
 
         res.json({
             materiJudul: materi.judul,
             jenjang: jenjang,
-            data: reportData
+            data: reportData,
+            stats: finalStats // Return stats for PDF
         });
 
     } catch (error) {
