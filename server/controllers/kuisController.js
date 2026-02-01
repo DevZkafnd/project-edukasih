@@ -169,7 +169,9 @@ exports.getQuizByMateri = async (req, res) => {
     try {
         const { materiId } = req.params;
         const kuis = await Kuis.findOne({ materi: materiId });
-        if (!kuis) return res.status(404).json({ message: 'Kuis belum tersedia untuk materi ini' });
+        
+        // If no quiz, return null or empty object with 200 OK to avoid 404 errors in frontend console
+        if (!kuis) return res.status(200).json(null);
         
         res.json(kuis);
     } catch (error) {
@@ -203,9 +205,6 @@ exports.getQuizReport = async (req, res) => {
                 const attempts = historyItem.riwayat_percobaan;
                 
                 // Best Attempt Logic (Highest Score, then Earliest Time)
-                // We sort the attempts array first to be sure
-                // 1. Sort by Score (Desc)
-                // 2. Sort by Time (Asc)
                 const sortedAttempts = [...attempts].sort((a, b) => {
                     if (b.skor !== a.skor) return b.skor - a.skor;
                     return new Date(a.tanggal) - new Date(b.tanggal);
@@ -216,24 +215,22 @@ exports.getQuizReport = async (req, res) => {
                 // Add to Report Data
                 reportData.push({
                     nama: student.nama,
-                    kelas: student.kelas,
+                    kelas: student.kelas || '-', // Ensure default if empty string
                     attemptNumber: attempts.length,
                     skor: bestAttempt.skor,
                     waktu: bestAttempt.tanggal,
-                    // We can include 'jenjang' if we want to show mixed jenjangs, but usually it's filtered
                     jenjang: student.jenjang
                 });
 
-                // Add to Stats (Only if student jenjang matches materi jenjang - strictly per user request)
-                // "persentase ... dari semua siswa yang ada di jenjang tersebut"
-                if (student.jenjang === jenjang) {
-                    if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
-                        bestAttempt.jawaban.forEach((ansIdx, qIdx) => {
-                            if (!questionStats[qIdx]) questionStats[qIdx] = {};
-                            if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
-                            questionStats[qIdx][ansIdx]++;
-                        });
-                    }
+                // Add to Stats
+                // We count ALL students who took this quiz to ensure consistency with the report list.
+                // Previously filtered by jenjang, but this caused 0% stats if student data was incomplete or cross-jenjang.
+                if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
+                    bestAttempt.jawaban.forEach((ansIdx, qIdx) => {
+                        if (!questionStats[qIdx]) questionStats[qIdx] = {};
+                        if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
+                        questionStats[qIdx][ansIdx]++;
+                    });
                 }
             }
         });
