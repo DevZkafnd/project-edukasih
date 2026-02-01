@@ -5,16 +5,16 @@ import { Link } from 'react-router-dom';
 const ResultModal = ({ isOpen, score, total, onRetry }) => {
   if (!isOpen) return null;
 
-  // Calculate Stars
-  // 1 Correct Answer = 1 Star (Direct Mapping)
-  const stars = score; 
+  // Calculate Stars (Normalized to 3 Stars)
+  const maxStars = 3;
+  const starsEarned = total > 0 ? Math.round((score / total) * maxStars) : 0;
+  
   let message = "";
-
-  if (score === total) {
+  if (starsEarned === 3) {
     message = "Luar Biasa! Kamu Hebat!";
-  } else if (score >= total / 2) {
+  } else if (starsEarned === 2) {
     message = "Bagus Sekali! Terus Belajar!";
-  } else if (score > 0) {
+  } else if (starsEarned === 1) {
     message = "Lumayan, Ayo Coba Lagi!";
   } else {
     message = "Jangan Menyerah, Kamu Pasti Bisa!";
@@ -27,20 +27,20 @@ const ResultModal = ({ isOpen, score, total, onRetry }) => {
         >
           <h2 className="text-4xl font-bold text-brand-blue mb-8">Hasil Belajar</h2>
           
-          <div className="flex justify-center gap-2 mb-8 flex-wrap">
-            {/* Display stars based on total questions (potential max score) */}
-            {[...Array(total)].map((_, i) => (
+          <div className="flex justify-center gap-4 mb-8">
+            {/* Display fixed 3 stars */}
+            {[...Array(maxStars)].map((_, i) => (
               <div key={i}>
                 <Star 
-                  size={Math.min(64, 300 / total)} // Dynamic size
-                  fill={i < stars ? "#FFD500" : "#E5E7EB"} 
-                  className={i < stars ? "text-brand-yellow drop-shadow-lg" : "text-gray-200"}
+                  size={64}
+                  fill={i < starsEarned ? "#FFD500" : "#E5E7EB"} 
+                  className={i < starsEarned ? "text-brand-yellow drop-shadow-lg" : "text-gray-200"}
                 />
               </div>
             ))}
           </div>
 
-          <p className="text-2xl font-bold text-gray-700 mb-2">Skor Kamu: {score} / {total}</p>
+          <p className="text-2xl font-bold text-gray-700 mb-2">Benar: {score} dari {total} Soal</p>
           <p className="text-xl text-brand-blue font-medium mb-10">{message}</p>
 
           <div className="flex gap-4 justify-center">

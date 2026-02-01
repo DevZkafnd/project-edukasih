@@ -41,6 +41,7 @@ const QuizReportPage = () => {
       // Fetch Report Data (Students & Stats)
       const reportRes = await axios.get(`/api/kuis/report/${materi._id}`);
       setReportData(reportRes.data.data);
+      // Ensure stats is always an object
       setReportStats(reportRes.data.stats || {});
 
       // Fetch Quiz Content (Questions)
@@ -83,20 +84,20 @@ const QuizReportPage = () => {
         doc.text(`Jenjang: ${selectedMaterial.jenjang || '-'}`, 14, 28);
         doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 34);
 
-        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Skor", "Waktu"];
-        const tableRows = [];
+        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Bintang (0-3)", "Waktu"];
+              const tableRows = [];
 
-        reportData.forEach((row, index) => {
-        const rowData = [
-            index + 1,
-            row.nama,
-            row.kelas || '-',
-            row.attemptNumber,
-            row.skor,
-            new Date(row.waktu).toLocaleString('id-ID')
-        ];
-        tableRows.push(rowData);
-        });
+              reportData.forEach((row, index) => {
+              const rowData = [
+                  index + 1,
+                  row.nama,
+                  row.kelas || '-',
+                  row.attemptNumber,
+                  row.skor + ' ⭐',
+                  new Date(row.waktu).toLocaleString('id-ID')
+              ];
+              tableRows.push(rowData);
+              });
 
         autoTable(doc, {
         head: [tableColumn],

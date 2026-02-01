@@ -11,7 +11,8 @@ import toast from 'react-hot-toast';
 import Logo from '../components/Logo';
 import BackgroundDecorations from '../components/BackgroundDecorations';
 
-// Reliable Sound Effects (CDN)
+// Reliable Sound Effects (Base64 / CDN)
+// Using Google CodeSkulptor which is very reliable for demos.
 const SOUND_CORRECT = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/bonus.mp3';
 const SOUND_WRONG = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/explosion_01.mp3'; 
 const SOUND_CLAP = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/pause.mp3'; // Placeholder for completion

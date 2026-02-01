@@ -16,28 +16,32 @@ exports.submitQuiz = async (req, res) => {
     let correctCount = 0;
     const totalQuestions = kuis.pertanyaan.length;
 
-    // Validate Answers
+    // Validate Answers & Cast to Numbers
+    const cleanJawaban = jawabanSiswa.map(ans => ans === null || ans === undefined ? -1 : Number(ans));
+
     kuis.pertanyaan.forEach((pertanyaan, index) => {
-      if (jawabanSiswa[index] === pertanyaan.indeks_jawaban_benar) {
+      if (cleanJawaban[index] === pertanyaan.indeks_jawaban_benar) {
         correctCount++;
       }
     });
 
-    // Calculate Stars (Simple Logic)
-    // 1 Correct Answer = 1 Star
-    const starsEarned = correctCount;
+    // Calculate Stars (Normalized to 3 Stars Max)
+    // "soal quiz mau ada 5 atau 1 atau berapa ke harus 3 bintang"
+    const maxStars = 3;
+    const starsEarned = totalQuestions > 0 
+        ? Math.round((correctCount / totalQuestions) * maxStars)
+        : 0;
 
     // Update Student History
-    // Note: In real app, we need authentication. Here we trust siswaId from body for demo.
     if (siswaId) {
         const siswa = await Siswa.findById(siswaId);
         if (siswa) {
-            // Check existing history for this Materi (Kuis is linked to Materi)
+            // Check existing history for this Materi
             const existingEntryIndex = siswa.history.findIndex(h => h.materi.toString() === kuis.materi.toString());
             
             const attemptData = {
                 skor: starsEarned,
-                jawaban: jawabanSiswa, // Save answer history
+                jawaban: cleanJawaban, // Save clean numeric answers
                 tanggal: Date.now()
             };
 
@@ -63,8 +67,8 @@ exports.submitQuiz = async (req, res) => {
                     riwayat_percobaan: [attemptData]
                 });
             }
-            // Recalculate Total Stars (Sum of max score per material)
-            // We can iterate history or aggregation. Since history is embedded, we can just sum it.
+            
+            // Recalculate Total Stars
             const totalStars = siswa.history.reduce((acc, curr) => acc + curr.skor, 0);
             siswa.skor_bintang = totalStars;
 
@@ -80,6 +84,7 @@ exports.submitQuiz = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Submit Quiz Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -115,10 +120,13 @@ exports.getQuizStats = async (req, res) => {
 
                 // Add to Stats (Distribution of answers in best attempts)
                 if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
-                    bestAttempt.jawaban.forEach((ansIdx, qIdx) => {
-                        if (!questionStats[qIdx]) questionStats[qIdx] = {};
-                        if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
-                        questionStats[qIdx][ansIdx]++;
+                    bestAttempt.jawaban.forEach((ans, qIdx) => {
+                        const ansIdx = Number(ans);
+                        if (!isNaN(ansIdx)) {
+                            if (!questionStats[qIdx]) questionStats[qIdx] = {};
+                            if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
+                            questionStats[qIdx][ansIdx]++;
+                        }
                     });
                 }
 
@@ -224,12 +232,15 @@ exports.getQuizReport = async (req, res) => {
 
                 // Add to Stats
                 // We count ALL students who took this quiz to ensure consistency with the report list.
-                // Previously filtered by jenjang, but this caused 0% stats if student data was incomplete or cross-jenjang.
                 if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
-                    bestAttempt.jawaban.forEach((ansIdx, qIdx) => {
-                        if (!questionStats[qIdx]) questionStats[qIdx] = {};
-                        if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
-                        questionStats[qIdx][ansIdx]++;
+                    bestAttempt.jawaban.forEach((ans, qIdx) => {
+                        // Ensure ans is a number
+                        const ansIdx = Number(ans);
+                        if (!isNaN(ansIdx)) {
+                            if (!questionStats[qIdx]) questionStats[qIdx] = {};
+                            if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
+                            questionStats[qIdx][ansIdx]++;
+                        }
                     });
                 }
             }
