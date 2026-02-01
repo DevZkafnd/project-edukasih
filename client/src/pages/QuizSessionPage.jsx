@@ -11,10 +11,10 @@ import toast from 'react-hot-toast';
 import Logo from '../components/Logo';
 import BackgroundDecorations from '../components/BackgroundDecorations';
 
-// Dummy SFX URLs (In real app, import local assets)
-const SOUND_CORRECT = 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3';
-const SOUND_WRONG = 'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3';
-const SOUND_CLAP = 'https://assets.mixkit.co/sfx/preview/mixkit-small-group-clapping-475.mp3';
+// Reliable Sound Effects (CDN)
+const SOUND_CORRECT = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/bonus.mp3';
+const SOUND_WRONG = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/explosion_01.mp3'; 
+const SOUND_CLAP = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/pause.mp3'; // Placeholder for completion
 
 const QuizSessionPage = () => {
   const { materiId } = useParams();
@@ -76,7 +76,7 @@ const QuizSessionPage = () => {
     const isCorrect = index === kuis.pertanyaan[currentQuestionIndex].indeks_jawaban_benar;
 
     if (isCorrect) {
-      playAudio(SOUND_CORRECT);
+      try { playAudio(SOUND_CORRECT); } catch (e) { console.warn("Audio error:", e); }
       setScore(prev => prev + 1);
       confetti({
         particleCount: 50,
@@ -84,7 +84,7 @@ const QuizSessionPage = () => {
         origin: { y: 0.7 }
       });
     } else {
-      playAudio(SOUND_WRONG);
+      try { playAudio(SOUND_WRONG); } catch (e) { console.warn("Audio error:", e); }
     }
 
     // Auto next after delay
@@ -100,7 +100,7 @@ const QuizSessionPage = () => {
 
   const finishQuiz = (finalAnswers) => {
     setShowResult(true);
-    playAudio(SOUND_CLAP);
+    try { playAudio(SOUND_CLAP); } catch (e) { console.warn("Audio error:", e); }
     confetti({
       particleCount: 200,
       spread: 100,
@@ -132,7 +132,7 @@ const QuizSessionPage = () => {
   };
 
   if (loading) return <div className="p-10 text-center font-comic">Memuat Kuis...</div>;
-  if (!kuis) return <div className="p-10 text-center font-comic">Kuis tidak ditemukan.</div>;
+  if (!kuis) return <div className="p-10 text-center font-comic">Kuis belum tersedia untuk materi ini.</div>;
 
   return (
     <div className="min-h-screen bg-blue-50/50 flex flex-col items-center py-10 px-4 font-comic relative">
