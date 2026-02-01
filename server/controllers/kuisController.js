@@ -202,8 +202,16 @@ exports.getQuizReport = async (req, res) => {
             if (historyItem && historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
                 const attempts = historyItem.riwayat_percobaan;
                 
-                // Best Attempt Logic
-                const bestAttempt = attempts.reduce((prev, current) => (prev.skor >= current.skor ? prev : current));
+                // Best Attempt Logic (Highest Score, then Earliest Time)
+                // We sort the attempts array first to be sure
+                // 1. Sort by Score (Desc)
+                // 2. Sort by Time (Asc)
+                const sortedAttempts = [...attempts].sort((a, b) => {
+                    if (b.skor !== a.skor) return b.skor - a.skor;
+                    return new Date(a.tanggal) - new Date(b.tanggal);
+                });
+
+                const bestAttempt = sortedAttempts[0];
 
                 // Add to Report Data
                 reportData.push({

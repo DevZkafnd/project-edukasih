@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { FileText, Download, ArrowLeft, Search, Filter } from 'lucide-react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import toast from 'react-hot-toast';
 import Logo from '../components/Logo';
 
@@ -16,6 +16,7 @@ const QuizReportPage = () => {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedJenjangFilter, setSelectedJenjangFilter] = useState('Semua');
 
   // Fetch all materials initially
   useEffect(() => {
@@ -47,7 +48,11 @@ const QuizReportPage = () => {
         const quizRes = await axios.get(`/api/kuis/${materi._id}`);
         setQuizQuestions(quizRes.data.pertanyaan || []);
       } catch (err) {
-        console.warn("Quiz content not found or error:", err);
+        // If 404, it just means no quiz exists for this material yet.
+        // We only warn if it's NOT a 404, to keep console clean.
+        if (err.response && err.response.status !== 404) {
+             console.warn("Quiz content error:", err);
+        }
         setQuizQuestions([]);
       }
 
@@ -93,7 +98,7 @@ const QuizReportPage = () => {
         tableRows.push(rowData);
         });
 
-        doc.autoTable({
+        autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 40,
@@ -143,7 +148,7 @@ const QuizReportPage = () => {
                     ]);
                 });
 
-                doc.autoTable({
+                autoTable(doc, {
                     head: [['Opsi', 'Jawaban', 'Jumlah Memilih', 'Persentase']],
                     body: statRows,
                     startY: currentY,
@@ -170,9 +175,11 @@ const QuizReportPage = () => {
     }
   };
 
-  const filteredMaterials = materials.filter(m => 
-    m.judul.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMaterials = materials.filter(m => {
+    const matchSearch = m.judul.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchJenjang = selectedJenjangFilter === 'Semua' || m.jenjang === selectedJenjangFilter;
+    return matchSearch && matchJenjang;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -199,15 +206,28 @@ const QuizReportPage = () => {
                     <FileText className="text-brand-blue" /> Pilih Materi
                 </h2>
                 
-                <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input 
-                        type="text" 
-                        placeholder="Cari materi..." 
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex gap-2 mb-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input 
+                            type="text" 
+                            placeholder="Cari materi..." 
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <select
+                        value={selectedJenjangFilter}
+                        onChange={(e) => setSelectedJenjangFilter(e.target.value)}
+                        className="px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue bg-white text-gray-600 text-sm"
+                    >
+                        <option value="Semua">Semua Jenjang</option>
+                        <option value="TK">TK</option>
+                        <option value="SD">SD</option>
+                        <option value="SMP">SMP</option>
+                        <option value="SMA">SMA</option>
+                    </select>
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
