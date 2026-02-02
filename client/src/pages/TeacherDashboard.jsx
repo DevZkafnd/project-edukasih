@@ -483,14 +483,12 @@ const TeacherDashboard = () => {
           )}
           
           <div className="pt-4 mt-4 border-t space-y-2">
-            <Link 
-              to="/laporan-kuis" 
-              onClick={() => setIsSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-brand-blue rounded-xl transition-all"
-            >
-                <FileText size={20} />
-                <span className="font-medium">Laporan Hasil Kuis</span>
-            </Link>
+            <SidebarItem 
+              label="Unduh Hasil Kuis" 
+              iconEl={<FileText size={20} />} 
+              active={location.pathname === '/laporan-kuis'} 
+              onClick={() => { navigate('/laporan-kuis'); setIsSidebarOpen(false); }}
+            />
             <Link 
               to="/forum" 
               onClick={() => setIsSidebarOpen(false)}

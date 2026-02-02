@@ -30,18 +30,19 @@ const ResultModal = ({ isOpen, score, total, onRetry }) => {
           <div className="flex justify-center gap-4 mb-8">
             {/* Display fixed 3 stars */}
             {[...Array(maxStars)].map((_, i) => (
-              <div key={i}>
+              <div key={i} className="transform transition-all duration-500 hover:scale-110">
                 <Star 
                   size={64}
                   fill={i < starsEarned ? "#FFD500" : "#E5E7EB"} 
-                  className={i < starsEarned ? "text-brand-yellow drop-shadow-lg" : "text-gray-200"}
+                  className={i < starsEarned ? "text-brand-yellow drop-shadow-lg animate-bounce-short" : "text-gray-200"}
+                  strokeWidth={1.5}
                 />
               </div>
             ))}
           </div>
 
-          <p className="text-2xl font-bold text-gray-700 mb-2">Benar: {score} dari {total} Soal</p>
-          <p className="text-xl text-brand-blue font-medium mb-10">{message}</p>
+          <p className="text-xl text-gray-500 mb-2 font-medium">Kamu mendapatkan {starsEarned} Bintang!</p>
+          <p className="text-2xl font-bold text-brand-blue mb-10">{message}</p>
 
           <div className="flex gap-4 justify-center">
             <button 

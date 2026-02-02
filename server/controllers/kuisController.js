@@ -28,9 +28,20 @@ exports.submitQuiz = async (req, res) => {
     // Calculate Stars (Normalized to 3 Stars Max)
     // "soal quiz mau ada 5 atau 1 atau berapa ke harus 3 bintang"
     const maxStars = 3;
-    const starsEarned = totalQuestions > 0 
-        ? Math.round((correctCount / totalQuestions) * maxStars)
-        : 0;
+    let starsEarned = 0;
+    
+    if (totalQuestions > 0) {
+        // Calculate raw percentage
+        const percentage = correctCount / totalQuestions;
+        
+        // Custom logic to avoid 1 star confusion if that was the issue
+        // But simple rounding (0-3) is usually best.
+        // 0 correct = 0 stars
+        // 100% correct = 3 stars
+        starsEarned = Math.round(percentage * maxStars);
+    }
+
+    console.log(`SubmitQuiz Debug: Siswa ${siswaId}, Correct: ${correctCount}/${totalQuestions}, Stars: ${starsEarned}, Answers:`, cleanJawaban);
 
     // Update Student History
     if (siswaId) {
@@ -205,7 +216,16 @@ exports.getQuizReport = async (req, res) => {
         }).select('nama kelas history jenjang');
 
         const reportData = [];
+        
+        // Fetch Quiz to know total questions for stats initialization
+        const kuis = await Kuis.findOne({ materi: materiId });
+        const totalQuestions = kuis ? kuis.pertanyaan.length : 0;
+        
+        // Initialize questionStats for ALL questions
         const questionStats = {}; // { qIndex: { optionIndex: count } }
+        for (let i = 0; i < totalQuestions; i++) {
+            questionStats[i] = {};
+        }
 
         students.forEach(student => {
             const historyItem = student.history.find(h => h.materi.toString() === materiId);
@@ -227,7 +247,8 @@ exports.getQuizReport = async (req, res) => {
                     attemptNumber: attempts.length,
                     skor: bestAttempt.skor,
                     waktu: bestAttempt.tanggal,
-                    jenjang: student.jenjang
+                    jenjang: student.jenjang,
+                    jawaban: bestAttempt.jawaban // Add answers to report
                 });
 
                 // Add to Stats
@@ -236,7 +257,7 @@ exports.getQuizReport = async (req, res) => {
                     bestAttempt.jawaban.forEach((ans, qIdx) => {
                         // Ensure ans is a number
                         const ansIdx = Number(ans);
-                        if (!isNaN(ansIdx)) {
+                        if (!isNaN(ansIdx) && ansIdx !== -1) { // Skip unanswered (-1)
                             if (!questionStats[qIdx]) questionStats[qIdx] = {};
                             if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
                             questionStats[qIdx][ansIdx]++;

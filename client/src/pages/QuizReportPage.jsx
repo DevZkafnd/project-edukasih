@@ -84,28 +84,37 @@ const QuizReportPage = () => {
         doc.text(`Jenjang: ${selectedMaterial.jenjang || '-'}`, 14, 28);
         doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 34);
 
-        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Bintang (0-3)", "Waktu"];
-              const tableRows = [];
+        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Bintang (0-3)", "Jawaban Siswa", "Waktu"];
+        const tableRows = [];
 
-              reportData.forEach((row, index) => {
-              const rowData = [
-                  index + 1,
-                  row.nama,
-                  row.kelas || '-',
-                  row.attemptNumber,
-                  row.skor + ' ⭐',
-                  new Date(row.waktu).toLocaleString('id-ID')
-              ];
-              tableRows.push(rowData);
-              });
+        reportData.forEach((row, index) => {
+            // Format answers as A, B, C or -
+            const formattedAnswers = row.jawaban 
+                ? row.jawaban.map(ans => ans === -1 ? '-' : (ans === 0 ? 'A' : ans === 1 ? 'B' : 'C')).join(', ')
+                : '-';
+
+            const rowData = [
+                index + 1,
+                row.nama,
+                row.kelas || '-',
+                row.attemptNumber,
+                row.skor + ' ⭐',
+                formattedAnswers,
+                new Date(row.waktu).toLocaleString('id-ID')
+            ];
+            tableRows.push(rowData);
+        });
 
         autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 40,
-        theme: 'grid',
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [66, 133, 244] }
+            head: [tableColumn],
+            body: tableRows,
+            startY: 40,
+            theme: 'grid',
+            styles: { fontSize: 10 },
+            headStyles: { fillColor: [66, 133, 244] },
+            columnStyles: {
+                5: { cellWidth: 40 } // Give more space for answers
+            }
         });
 
         // --- Page 2: Question Analysis (Item Analysis) ---
@@ -299,6 +308,7 @@ const QuizReportPage = () => {
                                             <th className="p-4 font-bold text-gray-600 border-b border-gray-200">Kelas</th>
                                             <th className="p-4 font-bold text-gray-600 border-b border-gray-200 text-center">Percobaan</th>
                                             <th className="p-4 font-bold text-gray-600 border-b border-gray-200 text-center">Skor</th>
+                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200">Jawaban Siswa</th>
                                             <th className="p-4 font-bold text-gray-600 border-b border-gray-200 text-right">Waktu</th>
                                         </tr>
                                     </thead>
@@ -317,6 +327,11 @@ const QuizReportPage = () => {
                                                     <div className="inline-flex items-center gap-1 font-bold text-brand-yellow">
                                                         {row.skor} <span className="text-gray-400 font-normal text-xs">Bintang</span>
                                                     </div>
+                                                </td>
+                                                <td className="p-4 text-sm font-mono text-gray-600">
+                                                    {row.jawaban 
+                                                        ? row.jawaban.map(ans => ans === -1 ? '-' : (ans === 0 ? 'A' : ans === 1 ? 'B' : 'C')).join(', ')
+                                                        : '-'}
                                                 </td>
                                                 <td className="p-4 text-right text-sm text-gray-500">
                                                     {new Date(row.waktu).toLocaleString('id-ID')}
