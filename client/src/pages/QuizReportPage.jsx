@@ -77,6 +77,9 @@ const QuizReportPage = () => {
     try {
         const doc = new jsPDF();
 
+        // Helper for Option Letters (A, B, C, D...)
+        const getOptionLetter = (index) => String.fromCharCode(65 + index);
+
         // --- Page 1: Student List ---
         doc.setFontSize(18);
         doc.text(`Laporan Hasil Kuis: ${selectedMaterial.judul}`, 14, 20);
@@ -88,9 +91,9 @@ const QuizReportPage = () => {
         const tableRows = [];
 
         reportData.forEach((row, index) => {
-            // Format answers as A, B, C or -
+            // Format answers as 1(A), 2(B), etc.
             const formattedAnswers = row.jawaban 
-                ? row.jawaban.map(ans => ans === -1 ? '-' : (ans === 0 ? 'A' : ans === 1 ? 'B' : 'C')).join(', ')
+                ? row.jawaban.map((ans, idx) => `${idx + 1}(${ans === -1 ? '-' : getOptionLetter(ans)})`).join(', ')
                 : '-';
 
             const rowData = [
@@ -113,7 +116,7 @@ const QuizReportPage = () => {
             styles: { fontSize: 10 },
             headStyles: { fillColor: [66, 133, 244] },
             columnStyles: {
-                5: { cellWidth: 40 } // Give more space for answers
+                5: { cellWidth: 50 } // Give more space for answers
             }
         });
 
@@ -160,7 +163,7 @@ const QuizReportPage = () => {
                     const percent = stats && stats.percentages ? (stats.percentages[optIdx] || 0) : 0;
                     
                     statRows.push([
-                        optIdx === 0 ? 'A' : optIdx === 1 ? 'B' : 'C',
+                        getOptionLetter(optIdx),
                         opt.teks + (isCorrect ? ' (Kunci Jawaban)' : ''),
                         `${count} Siswa`,
                         `${percent}%`
@@ -339,7 +342,7 @@ const QuizReportPage = () => {
                                                 </td>
                                                 <td className="p-4 text-sm font-mono text-gray-600">
                                                     {row.jawaban 
-                                                        ? row.jawaban.map(ans => ans === -1 ? '-' : (ans === 0 ? 'A' : ans === 1 ? 'B' : 'C')).join(', ')
+                                                        ? row.jawaban.map((ans, idx) => `${idx + 1}(${ans === -1 ? '-' : String.fromCharCode(65 + ans)})`).join(', ')
                                                         : '-'}
                                                 </td>
                                                 <td className="p-4 text-right text-sm text-gray-500">

@@ -40,10 +40,16 @@ exports.getMaterials = async (req, res) => {
         console.log(`[MATERI_FETCH] Target Jenjang calculated: ${targetJenjang}`);
 
         // Show materials for this Jenjang (Adaptive OR Original) OR assigned explicitly to this student
+        // FIX: Ensure we don't leak private materials assigned to OTHER students in the same jenjang
         query = {
             $or: [
-                { jenjang: targetJenjang },   // Adaptive Level (e.g., SMP for Autis SMA)
-                { jenjang: studentJenjang },  // Original Level (e.g., SMA) - Strict match per user request
+                { 
+                    jenjang: { $in: [targetJenjang, studentJenjang] },
+                    $or: [
+                        { siswa: { $exists: false } }, 
+                        { siswa: null }
+                    ]
+                },
                 { siswa: req.user.id }
             ]
         };
