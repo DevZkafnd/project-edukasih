@@ -39,6 +39,9 @@ export const AudioProvider = ({ children }) => {
         if (e.name === 'NotAllowedError' || /not allowed|gesture|user interaction/i.test(e.message || '')) {
           console.log("Audio autoplay blocked. Queued for user interaction.");
           queuedAudioRef.current = url;
+        } else if (e.name === 'NotSupportedError' || e.message.includes('no supported source')) {
+          // Suppress "no supported source" error which happens when audio file is missing or blocked
+          console.log("Audio source not supported or missing:", url);
         } else {
           console.warn("Audio playback failed:", e.message);
         }

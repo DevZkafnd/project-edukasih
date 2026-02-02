@@ -230,10 +230,20 @@ const TeacherDashboard = () => {
         return;
     }
 
+    // Debug Log
+    console.log("[Upload] Starting upload...", { isEdit, formData, fileSize: file?.size });
+
     const toastId = toast.loading(isEdit ? 'Menyimpan perubahan...' : 'Sedang mengupload...');
 
     try {
       const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
+      
+      // Safety check for empty file
+      if (file && file.size === 0) {
+        toast.error("File yang dipilih kosong (0 bytes). Silakan pilih file lain.", { id: toastId });
+        return;
+      }
+
       if (formData.tipe_media === 'video_youtube' || formData.tipe_media === 'link_eksternal') {
         const vid = formData.tipe_media === 'video_youtube' ? getYoutubeId(formData.url_media) : true;
         if (!vid && formData.tipe_media === 'video_youtube') {
@@ -345,8 +355,17 @@ const TeacherDashboard = () => {
       
       fetchData(); // Refresh data
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(`Gagal ${isEdit ? 'menyimpan' : 'mengupload'}: ` + (error.response?.data?.message || error.message), { id: toastId });
+      console.error("Upload error details:", error);
+      const errorMessage = error.response?.data?.message || error.message;
+      const statusCode = error.response?.status;
+      
+      let displayMessage = `Gagal ${isEdit ? 'menyimpan' : 'mengupload'}: ${errorMessage}`;
+      
+      if (statusCode === 413) {
+        displayMessage = "Gagal upload: Ukuran file terlalu besar untuk server.";
+      }
+      
+      toast.error(displayMessage, { id: toastId });
     }
   };
 
