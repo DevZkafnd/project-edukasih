@@ -294,11 +294,6 @@ const TeacherDashboard = () => {
         toast.error('Ukuran file terlalu besar! Maksimal 100MB.', { id: toastId });
         return;
       }
-
-      // Optional: Assign to selected student if present (Legacy support, but primarily use Jenjang)
-      if (selectedStudent) {
-          data.append('siswa', selectedStudent._id);
-      }
       
       const stepsArray = formData.langkah_langkah.split('\n').filter(step => step.trim() !== '');
       stepsArray.forEach(step => data.append('langkah_langkah', step));
@@ -1175,28 +1170,6 @@ const TeacherDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Info Penugasan Siswa */}
-                  {selectedStudent && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3 animate-fadeIn">
-                          <div className="w-10 h-10 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold shadow-sm">
-                              {selectedStudent.nama.charAt(0)}
-                          </div>
-                          <div>
-                              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Ditugaskan Khusus Untuk</p>
-                              <p className="text-gray-800 font-bold text-lg">{selectedStudent.nama}</p>
-                          </div>
-                          <div className="ml-auto flex flex-col items-end">
-                             <span className="bg-white text-brand-blue text-xs px-2 py-1 rounded-lg font-bold border border-blue-100 shadow-sm mb-1">
-                                 {selectedStudent.jenjang || 'Umum'}
-                             </span>
-                             {selectedStudent.ketunaan && (
-                                <span className="text-xs text-gray-500 font-medium">
-                                    {selectedStudent.ketunaan}
-                                </span>
-                             )}
-                          </div>
-                      </div>
-                  )}
 
                   {/* Media Input */}
                   <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
