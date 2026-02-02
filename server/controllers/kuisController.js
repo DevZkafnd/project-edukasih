@@ -111,17 +111,27 @@ exports.getQuizStats = async (req, res) => {
         
         const jenjang = materi.jenjang; // e.g., 'SD'
 
-        // 2. Find all students in this jenjang who have history for this materi
-        // We filter by jenjang to ensure we are comparing apples to apples, as requested.
-        const students = await Siswa.find({ 
+        // 2. Find all students in this jenjang to calculate total population
+        const totalStudentsInJenjang = await Siswa.countDocuments({ jenjang: jenjang });
+
+        // 3. Find students who have taken the quiz
+        const studentsWithHistory = await Siswa.find({ 
             jenjang: jenjang,
             'history.materi': materiId 
         }).select('nama kelas history');
 
+        // Fetch Quiz to know total questions for stats initialization
+        const kuis = await Kuis.findOne({ materi: materiId });
+        const totalQuestions = kuis ? kuis.pertanyaan.length : 0;
+
         const questionStats = {}; // { qIndex: { optionIndex: count } }
+        for (let i = 0; i < totalQuestions; i++) {
+            questionStats[i] = {};
+        }
+
         const leaderboard = [];
 
-        students.forEach(student => {
+        studentsWithHistory.forEach(student => {
             const historyItem = student.history.find(h => h.materi.toString() === materiId);
             if (historyItem && historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
                 // Find best attempt (highest score)
@@ -133,7 +143,7 @@ exports.getQuizStats = async (req, res) => {
                 if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
                     bestAttempt.jawaban.forEach((ans, qIdx) => {
                         const ansIdx = Number(ans);
-                        if (!isNaN(ansIdx)) {
+                        if (!isNaN(ansIdx) && ansIdx !== -1) {
                             if (!questionStats[qIdx]) questionStats[qIdx] = {};
                             if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
                             questionStats[qIdx][ansIdx]++;
@@ -157,18 +167,25 @@ exports.getQuizStats = async (req, res) => {
             return new Date(a.waktu) - new Date(b.waktu);
         });
 
-        // Calculate Percentages
+        // Calculate Percentages based on TOTAL STUDENTS IN JENJANG
+        // "persentase itu adalah hitungan dari jumlah total kelas dan siswa sesuai jenjang nya masing-masing"
         const finalStats = {};
         Object.keys(questionStats).forEach(qIdx => {
             const options = questionStats[qIdx];
-            const total = Object.values(options).reduce((a, b) => a + b, 0);
+            const totalRespondents = Object.values(options).reduce((a, b) => a + b, 0);
+            
+            // Denominator is Total Students in Jenjang (Population), not just respondents
+            // This ensures stability: 1 vote out of 30 students = 3.3%, not 100%
+            const denominator = totalStudentsInJenjang > 0 ? totalStudentsInJenjang : 1;
+
             finalStats[qIdx] = {
-                totalVotes: total,
+                totalVotes: totalRespondents,
+                totalPopulation: totalStudentsInJenjang,
                 distribution: options, // { 0: 5, 1: 2 }
                 percentages: {}
             };
             Object.keys(options).forEach(optIdx => {
-                finalStats[qIdx].percentages[optIdx] = Math.round((options[optIdx] / total) * 100);
+                finalStats[qIdx].percentages[optIdx] = Math.round((options[optIdx] / denominator) * 100);
             });
         });
 
@@ -273,18 +290,24 @@ exports.getQuizReport = async (req, res) => {
             return new Date(a.waktu) - new Date(b.waktu);
         });
 
-        // Calculate Percentages for Stats
+        // Calculate Percentages for Stats based on TOTAL STUDENTS IN JENJANG
         const finalStats = {};
         Object.keys(questionStats).forEach(qIdx => {
             const options = questionStats[qIdx];
-            const total = Object.values(options).reduce((a, b) => a + b, 0);
+            const totalRespondents = Object.values(options).reduce((a, b) => a + b, 0);
+            
+            // Denominator is Total Students in Jenjang (Population)
+            const totalPopulation = students.length;
+            const denominator = totalPopulation > 0 ? totalPopulation : 1;
+
             finalStats[qIdx] = {
-                totalVotes: total,
+                totalVotes: totalRespondents,
+                totalPopulation: totalPopulation,
                 distribution: options,
                 percentages: {}
             };
             Object.keys(options).forEach(optIdx => {
-                finalStats[qIdx].percentages[optIdx] = Math.round((options[optIdx] / total) * 100);
+                finalStats[qIdx].percentages[optIdx] = Math.round((options[optIdx] / denominator) * 100);
             });
         });
 

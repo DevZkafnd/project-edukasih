@@ -100,6 +100,9 @@ const QuizSessionPage = () => {
   };
 
   const finishQuiz = (finalAnswers) => {
+    // Send score to backend first to update stats
+    submitScore(finalAnswers);
+    
     setShowResult(true);
     try { playAudio(SOUND_CLAP); } catch (e) { console.warn("Audio error:", e); }
     confetti({
@@ -107,9 +110,6 @@ const QuizSessionPage = () => {
       spread: 100,
       origin: { y: 0.6 }
     });
-
-    // Send score to backend
-    submitScore(finalAnswers);
   };
 
   const submitScore = async (finalAnswers) => {
@@ -126,6 +126,12 @@ const QuizSessionPage = () => {
         });
         console.log("Score submitted successfully!");
         toast.success("Nilai kamu berhasil disimpan!");
+
+        // Refresh stats to include current attempt in leaderboard
+        const statsResponse = await axios.get(`/api/kuis/stats/${kuis.materi}`);
+        setLeaderboard(statsResponse.data.leaderboard);
+        setStats(statsResponse.data.stats);
+
     } catch (error) {
         console.error("Error submitting score:", error);
         toast.error("Gagal menyimpan nilai.");
@@ -164,43 +170,16 @@ const QuizSessionPage = () => {
             stats={stats}
         />
 
-        {/* Leaderboard Section - Only visible when answer is selected or at end, but user wants it visible during quiz? 
-            "terlihat nama siswa ... yang paling nilainya bagus"
-            Maybe show it always or after first answer? Let's show it below the card always to motivate them.
-        */}
-        {leaderboard.length > 0 && (
-            <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-[2rem] p-6 shadow-xl border-4 border-brand-blue/20">
-                <h3 className="text-2xl font-bold text-brand-blue mb-4 text-center" style={{ fontFamily: 'Comic Neue, cursive' }}>
-                    🏆 Siswa Terbaik (Jenjang Ini) 🏆
-                </h3>
-                <div className="grid gap-3">
-                    {leaderboard.map((student, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl border-2 border-brand-blue/10">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-white ${idx === 0 ? 'bg-yellow-400' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-orange-400' : 'bg-brand-blue'}`}>
-                                    {idx + 1}
-                                </div>
-                                <div>
-                                    <div className="font-bold text-brand-blue">{student.nama}</div>
-                                    <div className="text-xs text-gray-500">{student.kelas}</div>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <div className="font-bold text-brand-green">{student.skor} Bintang</div>
-                                <div className="text-xs text-gray-400">{new Date(student.waktu).toLocaleDateString()}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        )}
+        {/* Leaderboard Section - REMOVED from here, moved to ResultModal as requested */}
+        {/* "Siswa Terbaik ... harus muncul setelah selesai mengerjakan soal alias pop up nya muncul dibawah bintang" */}
       </div>
 
       <ResultModal 
         isOpen={showResult} 
         score={score} 
-        total={kuis.pertanyaan.length}
+        total={kuis.pertanyaan.length} 
         onRetry={() => window.location.reload()}
+        leaderboard={leaderboard}
       />
     </div>
   );

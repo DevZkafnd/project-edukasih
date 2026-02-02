@@ -123,9 +123,18 @@ const QuizReportPage = () => {
             doc.setFontSize(16);
             doc.text(`Analisis Butir Soal (Item Analysis)`, 14, 20);
             doc.setFontSize(10);
-            doc.text(`Distribusi jawaban berdasarkan jenjang: ${selectedMaterial.jenjang}`, 14, 28);
             
-            let currentY = 40;
+            // Get total population from first question stats if available
+            const totalPop = reportStats[0] ? reportStats[0].totalPopulation : 0;
+            const totalVotes = reportStats[0] ? reportStats[0].totalVotes : 0; // Approximate from first question
+            
+            doc.text(`Distribusi jawaban berdasarkan jenjang: ${selectedMaterial.jenjang}`, 14, 28);
+            if (totalPop > 0) {
+                doc.text(`Total Siswa Jenjang: ${totalPop} | Partisipasi: ${totalVotes} Siswa`, 14, 34);
+                currentY = 44;
+            } else {
+                currentY = 38;
+            }
 
             quizQuestions.forEach((q, qIdx) => {
                 // Check if we need a new page

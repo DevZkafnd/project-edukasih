@@ -2,7 +2,7 @@ import React from 'react';
 import { Star, RotateCcw, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const ResultModal = ({ isOpen, score, total, onRetry }) => {
+const ResultModal = ({ isOpen, score, total, onRetry, leaderboard = [] }) => {
   if (!isOpen) return null;
 
   // Calculate Stars (Normalized to 3 Stars)
@@ -21,9 +21,9 @@ const ResultModal = ({ isOpen, score, total, onRetry }) => {
   }
 
   return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div 
-          className="bg-white rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl border-8 border-brand-blue"
+          className="bg-white rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl border-8 border-brand-blue my-8"
         >
           <h2 className="text-4xl font-bold text-brand-blue mb-8">Hasil Belajar</h2>
           
@@ -42,7 +42,32 @@ const ResultModal = ({ isOpen, score, total, onRetry }) => {
           </div>
 
           <p className="text-xl text-gray-500 mb-2 font-medium">Kamu mendapatkan {starsEarned} Bintang!</p>
-          <p className="text-2xl font-bold text-brand-blue mb-10">{message}</p>
+          <p className="text-2xl font-bold text-brand-blue mb-8">{message}</p>
+
+          {/* Leaderboard Section */}
+          {leaderboard && leaderboard.length > 0 && (
+            <div className="mb-8 text-left bg-blue-50 p-4 rounded-2xl border-2 border-brand-blue/20">
+                <h3 className="text-lg font-bold text-brand-blue mb-3 text-center border-b border-brand-blue/10 pb-2">
+                    🏆 Siswa Terbaik (Jenjang Ini) 🏆
+                </h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                    {leaderboard.map((student, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-brand-blue/10 text-sm">
+                            <div className="flex items-center gap-2">
+                                <div className={`w-6 h-6 flex items-center justify-center rounded-full font-bold text-white text-xs ${idx === 0 ? 'bg-yellow-400' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-orange-400' : 'bg-brand-blue'}`}>
+                                    {idx + 1}
+                                </div>
+                                <div className="truncate max-w-[120px]">
+                                    <div className="font-bold text-gray-700 truncate">{student.nama}</div>
+                                    <div className="text-[10px] text-gray-400">{student.kelas}</div>
+                                </div>
+                            </div>
+                            <div className="font-bold text-brand-green whitespace-nowrap">{student.skor} ⭐</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          )}
 
           <div className="flex gap-4 justify-center">
             <button 
