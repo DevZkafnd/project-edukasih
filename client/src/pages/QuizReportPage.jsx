@@ -189,8 +189,21 @@ const QuizReportPage = () => {
             });
         }
 
-        doc.save(`Laporan_Kuis_${selectedMaterial.judul.replace(/\s+/g, '_')}.pdf`);
-        toast.success("PDF Berhasil Diunduh!", { id: toastId });
+        // Compatibility fix for Mobile Browsers (especially iOS Safari)
+        const fileName = `Laporan_Kuis_${selectedMaterial.judul.replace(/\s+/g, '_')}.pdf`;
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+            // For iOS Safari, opening the blob URL allows the user to "Save to Files" or Print
+            const blob = doc.output('blob');
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            toast.success("PDF dibuka. Gunakan menu 'Share' untuk menyimpan.", { id: toastId });
+        } else {
+            // For Desktop & Android, standard save works best
+            doc.save(fileName);
+            toast.success("PDF Berhasil Diunduh!", { id: toastId });
+        }
     } catch (error) {
         console.error("PDF Generation Error:", error);
         toast.error("Gagal membuat PDF. Silakan coba lagi.", { id: toastId });
