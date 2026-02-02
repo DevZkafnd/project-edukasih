@@ -15,7 +15,7 @@ exports.getMaterials = async (req, res) => {
         // Fetch student to get Jenjang and Ketunaan
         const student = await Siswa.findById(req.user.id);
         const studentJenjang = student?.jenjang || 'SD';
-        const studentKetunaan = student?.ketunaan || '';
+        const studentKetunaan = student?.ketunaan || 'Umum';
 
         console.log(`[MATERI_FETCH] Student: ${req.user.nama} (${req.user.id}), Jenjang: ${studentJenjang}, Ketunaan: ${studentKetunaan}`);
 
@@ -39,17 +39,30 @@ exports.getMaterials = async (req, res) => {
         
         console.log(`[MATERI_FETCH] Target Jenjang calculated: ${targetJenjang}`);
 
-        // Show materials for this Jenjang (Adaptive OR Original) OR assigned explicitly to this student
-        // FIX: Ensure we don't leak private materials assigned to OTHER students in the same jenjang
+        // Show materials for this Jenjang (Adaptive OR Original) AND Ketunaan
+        // STRICT FILTERING: Match Jenjang AND Match Ketunaan
         query = {
             $or: [
+                // 1. Match Target Jenjang & Ketunaan (Primary)
                 { 
+                    jenjang: targetJenjang,
+                    ketunaan: studentKetunaan
+                },
+                // 2. Match Original Jenjang & Ketunaan (Fallback/Supplementary)
+                {
+                    jenjang: studentJenjang,
+                    ketunaan: studentKetunaan
+                },
+                // 3. Match 'Umum' ketunaan for the Jenjang (Optional shared materials)
+                {
                     jenjang: { $in: [targetJenjang, studentJenjang] },
                     $or: [
-                        { siswa: { $exists: false } }, 
-                        { siswa: null }
+                        { ketunaan: 'Umum' },
+                        { ketunaan: { $exists: false } }, // Legacy support
+                        { ketunaan: null } // Legacy support
                     ]
                 },
+                // 4. Specific Student Assignment (Legacy/Override)
                 { siswa: req.user.id }
             ]
         };
@@ -59,7 +72,7 @@ exports.getMaterials = async (req, res) => {
              const targetStudent = await Siswa.findById(siswa);
              if (targetStudent) {
                  const studentJenjang = targetStudent.jenjang || 'SD';
-                 const studentKetunaan = targetStudent.ketunaan || '';
+                 const studentKetunaan = targetStudent.ketunaan || 'Umum';
                  
                  let targetJenjang = studentJenjang;
                  if (['Autis', 'Tunagrahita'].includes(studentKetunaan)) {
@@ -74,9 +87,17 @@ exports.getMaterials = async (req, res) => {
 
                  query = {
                     $or: [
-                        { jenjang: targetJenjang },
-                        { jenjang: studentJenjang },
-                        { siswa: siswa }
+                        { jenjang: targetJenjang, ketunaan: studentKetunaan },
+                         { jenjang: studentJenjang, ketunaan: studentKetunaan },
+                         { 
+                             jenjang: { $in: [targetJenjang, studentJenjang] }, 
+                             $or: [
+                                { ketunaan: 'Umum' },
+                                { ketunaan: { $exists: false } },
+                                { ketunaan: null }
+                             ]
+                         },
+                         { siswa: siswa }
                     ]
                 };
              } else {
@@ -192,7 +213,7 @@ exports.createMaterial = async (req, res) => {
     console.log('[CREATE_MATERI] Request Body:', req.body);
     console.log('[CREATE_MATERI] Request File:', req.file ? req.file.filename : 'No File');
 
-    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang, siswa } = req.body;
+    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang, ketunaan, siswa } = req.body;
     
     let finalUrlMedia = '';
     let final_tipe_media = tipe_media;
@@ -252,6 +273,7 @@ exports.createMaterial = async (req, res) => {
       panduan_ortu,
       langkah_langkah: parsedLangkah,
       jenjang: jenjang || 'SD', // Default to SD if not specified
+      ketunaan: ketunaan || 'Umum',
       siswa: siswa || null // Explicitly assign to student if provided
     });
 
@@ -270,7 +292,7 @@ exports.createMaterial = async (req, res) => {
 exports.updateMaterial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang } = req.body;
+    const { judul, kategori, tipe_media, url_media, panduan_ortu, langkah_langkah, jenjang, ketunaan } = req.body;
 
     const materi = await Materi.findById(id);
     if (!materi) {
@@ -282,6 +304,7 @@ exports.updateMaterial = async (req, res) => {
     if (kategori) materi.kategori = kategori;
     if (panduan_ortu) materi.panduan_ortu = panduan_ortu;
     if (jenjang) materi.jenjang = jenjang;
+    if (ketunaan) materi.ketunaan = ketunaan;
 
     // Handle Steps
     if (langkah_langkah) {

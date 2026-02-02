@@ -149,7 +149,8 @@ const TeacherDashboard = () => {
     url_media: '',
     langkah_langkah: [''],
     panduan_ortu: '',
-    jenjang: 'SD' // Replaced siswa with jenjang
+    jenjang: 'SD', // Replaced siswa with jenjang
+    ketunaan: 'Umum'
   });
   const [file, setFile] = useState(null);
 
@@ -182,12 +183,16 @@ const TeacherDashboard = () => {
     }
   }, [selectedStudent]);
 
-  // Auto-fill Jenjang when switching to upload tab or when context changes
+  // Auto-fill Jenjang & Ketunaan when switching to upload tab or when context changes
   useEffect(() => {
-    if (activeTab === 'upload' && !isEdit && selectedJenjang) {
-        setFormData(prev => ({ ...prev, jenjang: selectedJenjang }));
+    if (activeTab === 'upload' && !isEdit) {
+        setFormData(prev => ({
+            ...prev,
+            jenjang: selectedJenjang || prev.jenjang,
+            ketunaan: selectedKetunaan || prev.ketunaan
+        }));
     }
-  }, [activeTab, selectedJenjang, isEdit]);
+  }, [activeTab, selectedJenjang, selectedKetunaan, isEdit]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -280,6 +285,7 @@ const TeacherDashboard = () => {
       data.append('judul', formData.judul);
       data.append('kategori', formData.kategori);
       data.append('jenjang', formData.jenjang); // Append Jenjang
+      data.append('ketunaan', formData.ketunaan); // Append Ketunaan
       data.append('tipe_media', formData.tipe_media);
       data.append('panduan_ortu', formData.panduan_ortu);
       
@@ -327,6 +333,7 @@ const TeacherDashboard = () => {
                 judul: '',
                 kategori: 'akademik',
                 jenjang: selectedJenjang || 'SD', // Keep current student jenjang
+                ketunaan: selectedKetunaan || 'Umum',
                 tipe_media: 'gambar_lokal',
                 url_media: '',
                 panduan_ortu: '',
@@ -354,6 +361,7 @@ const TeacherDashboard = () => {
       judul: materi.judul,
       kategori: materi.kategori,
       jenjang: materi.jenjang || 'SD', // Load existing jenjang
+      ketunaan: materi.ketunaan || 'Umum',
       tipe_media: materi.tipe_media,
       url_media: materi.tipe_media === 'video_youtube' ? materi.url_media : '',
       panduan_ortu: materi.panduan_ortu || '',
@@ -469,6 +477,7 @@ const TeacherDashboard = () => {
                         judul: '',
                         kategori: 'akademik',
                         jenjang: selectedJenjang || 'SD',
+                        ketunaan: selectedKetunaan || 'Umum',
                         tipe_media: 'video_youtube',
                         url_media: '',
                         panduan_ortu: '',
@@ -767,13 +776,14 @@ const TeacherDashboard = () => {
                         onClick={() => {
                             setEditMateri(null);
                             setFormData({
-                                judul: '',
-                                kategori: 'akademik',
-                                jenjang: selectedJenjang || 'SD',
-                                tipe_media: 'video_youtube',
-                                url_media: '',
-                                panduan_ortu: '',
-                                langkah_langkah: ''
+                        judul: '',
+                        kategori: 'akademik',
+                        jenjang: selectedJenjang || 'SD',
+                        ketunaan: selectedKetunaan || 'Umum',
+                        tipe_media: 'video_youtube',
+                        url_media: '',
+                        panduan_ortu: '',
+                        langkah_langkah: ''
                             });
                             setFile(null);
                             setActiveTab('upload');
@@ -816,6 +826,7 @@ const TeacherDashboard = () => {
                                 judul: '',
                                 kategori: 'akademik',
                                 jenjang: selectedJenjang || 'SD',
+                                ketunaan: selectedKetunaan || 'Umum',
                                 tipe_media: 'video_youtube',
                                 url_media: '',
                                 panduan_ortu: '',
@@ -1074,11 +1085,11 @@ const TeacherDashboard = () => {
                     />
                   </div>
 
-                  {/* Kategori, Jenjang, Tipe Media (3 Column Grid) */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Kategori, Jenjang, Ketunaan, Tipe Media (Grid) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Kategori */}
                     <div>
-                      <label className="block text-gray-700 font-bold mb-2">Kategori</label>
+                      <label className="block text-gray-700 font-bold mb-2">Kategori Materi</label>
                       <div className="relative">
                         <select
                           name="kategori"
@@ -1114,6 +1125,31 @@ const TeacherDashboard = () => {
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {selectedJenjang ? `Siswa ini berada di jenjang ${selectedJenjang}` : 'Pilih jenjang target'}
+                      </p>
+                    </div>
+
+                    {/* Ketunaan (NEW) */}
+                    <div>
+                      <label className="block text-gray-700 font-bold mb-2">Kategori Ketunaan <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <select
+                          name="ketunaan"
+                          value={formData.ketunaan}
+                          onChange={handleInputChange}
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          required
+                        >
+                          <option value="Umum">Umum / Semua</option>
+                          <option value="Tunanetra">Tunanetra</option>
+                          <option value="Tunarungu">Tunarungu</option>
+                          <option value="Tunagrahita">Tunagrahita</option>
+                          <option value="Tunadaksa">Tunadaksa</option>
+                          <option value="Autis">Autis</option>
+                        </select>
+                        <ChevronDown size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Wajib dipilih (misal: Autis, Tunarungu, dll)
                       </p>
                     </div>
                     

@@ -42,6 +42,12 @@ const MateriSchema = new mongoose.Schema({
     enum: ['TK', 'SD', 'SMP', 'SMA'],
     default: 'SD' // Default untuk migrasi
   },
+  ketunaan: {
+    type: String,
+    enum: ['Tunanetra', 'Tunarungu', 'Tunagrahita', 'Tunadaksa', 'Autis', 'Umum'],
+    required: true,
+    default: 'Umum' // Default for migration/legacy
+  },
   // Deprecated: siswa specific assignment is being replaced by jenjang
   siswa: {
     type: mongoose.Schema.Types.ObjectId,
