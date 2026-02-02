@@ -405,7 +405,7 @@ const TeacherDashboard = () => {
   if (authLoading || loadingData) return <div className="p-10 text-center">Memuat Dashboard...</div>;
 
   return (
-    <div className="flex h-screen bg-gray-100 font-sans overflow-hidden">
+    <div className="flex h-dvh bg-gray-100 font-sans overflow-hidden">
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div 
@@ -794,13 +794,13 @@ const TeacherDashboard = () => {
                    value={search}
                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                    placeholder="Cari judul materi..."
-                   className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                   className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                  />
                  <div className="relative w-full sm:w-64">
                    <select
                      value={filterKategori}
                      onChange={(e) => { setFilterKategori(e.target.value); setPage(1); }}
-                     className="appearance-none w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                     className="appearance-none w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                    >
                      <option value="">Semua Kategori</option>
                      <option value="akademik">Akademik</option>
@@ -1074,7 +1074,7 @@ const TeacherDashboard = () => {
                       onChange={handleInputChange}
                       onKeyDown={(e) => e.stopPropagation()}
                       onKeyUp={(e) => e.stopPropagation()}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
                       placeholder="Contoh: Belajar Berhitung 1-10"
                       required
                     />
@@ -1090,7 +1090,7 @@ const TeacherDashboard = () => {
                           name="kategori"
                           value={formData.kategori}
                           onChange={handleInputChange}
-                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                         >
                           <option value="akademik">Akademik</option>
                           <option value="vokasi">Vokasional</option>
@@ -1108,7 +1108,7 @@ const TeacherDashboard = () => {
                           name="jenjang"
                           value={formData.jenjang}
                           onChange={handleInputChange}
-                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                           required
                         >
                           <option value="TK">TK</option>
@@ -1131,7 +1131,7 @@ const TeacherDashboard = () => {
                           name="ketunaan"
                           value={formData.ketunaan}
                           onChange={handleInputChange}
-                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                           required
                         >
                           <option value="Umum">Umum / Semua</option>
@@ -1156,7 +1156,7 @@ const TeacherDashboard = () => {
                           name="tipe_media"
                           value={formData.tipe_media}
                           onChange={handleInputChange}
-                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
+                          className="w-full appearance-none border border-gray-300 rounded-xl px-4 py-3 pr-10 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white"
                         >
                           <option value="gambar_lokal">Gambar (Upload)</option>
                           <option value="video_youtube">Video YouTube</option>
@@ -1183,7 +1183,7 @@ const TeacherDashboard = () => {
                           name="url_media"
                           value={formData.url_media}
                           onChange={handleInputChange}
-                          className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
+                          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition"
                           placeholder={formData.tipe_media === 'video_youtube' ? "https://www.youtube.com/watch?v=..." : "https://quizizz.com/..."}
                           required
                         />
@@ -1263,7 +1263,7 @@ const TeacherDashboard = () => {
                       onChange={handleInputChange}
                       onKeyDown={(e) => e.stopPropagation()}
                       onKeyUp={(e) => e.stopPropagation()}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-24"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-24"
                       placeholder="Instruksi pendampingan..."
                     />
                   </div>
@@ -1283,7 +1283,7 @@ const TeacherDashboard = () => {
                       onChange={handleInputChange}
                       onKeyDown={(e) => e.stopPropagation()}
                       onKeyUp={(e) => e.stopPropagation()}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-32"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition h-32"
                       placeholder="1. Ini adalah...&#10;2. Ayo tirukan..."
                     />
                   </div>
