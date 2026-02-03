@@ -45,37 +45,34 @@ const QuizCard = ({ question, currentQuestionIndex, onAnswer, selectedAnswer, co
 
           // Progress Bar Logic (Only show if answered)
           if (selectedAnswer !== null) {
-              const hasStats = stats && stats[currentQuestionIndex] && stats[currentQuestionIndex].percentages;
-              const percentage = hasStats && stats[currentQuestionIndex].percentages[index] !== undefined 
-                ? stats[currentQuestionIndex].percentages[index] 
-                : 0;
-
-              // Show bar if we have stats OR if we want to show empty state
-              // User wants to see "persentase", so even if 0% or no data, we should probably indicate it
-              if (hasStats) {
-                  progressBar = (
-                    <div className="absolute bottom-0 left-0 w-full h-4 bg-gray-200 rounded-b-[2rem] overflow-hidden mt-2">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${percentage}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-blue-500"
-                      />
-                      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
-                        {percentage}% Siswa Memilih Ini
-                      </span>
-                    </div>
-                  );
-              } else if (index === selectedAnswer) {
-                   // Fallback for first user/no data: Show they are the first
-                   progressBar = (
-                    <div className="absolute bottom-0 left-0 w-full h-4 bg-gray-200 rounded-b-[2rem] overflow-hidden mt-2">
-                         <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-500">
-                            Data belum tersedia (Siswa Pertama)
-                         </span>
-                    </div>
-                   );
+              const currentStats = stats && stats[currentQuestionIndex];
+              const totalVotes = currentStats ? (currentStats.totalVotes || 0) : 0;
+              
+              // If total votes are 0 (first user), make the selected answer 100%
+              // Otherwise use backend percentage
+              let percentage = 0;
+              
+              if (totalVotes === 0) {
+                  percentage = (index === selectedAnswer) ? 100 : 0;
+              } else {
+                  percentage = currentStats && currentStats.percentages && currentStats.percentages[index] !== undefined 
+                    ? currentStats.percentages[index] 
+                    : 0;
               }
+
+              progressBar = (
+                <div className="absolute bottom-0 left-0 w-full h-4 bg-gray-200 rounded-b-[2rem] overflow-hidden mt-2">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percentage}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-blue-500"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
+                    {percentage}% Siswa Memilih Ini
+                  </span>
+                </div>
+              );
           }
           }
 

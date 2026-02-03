@@ -12,15 +12,15 @@ import Logo from '../components/Logo';
 import BackgroundDecorations from '../components/BackgroundDecorations';
 
 // Reliable Sound Effects (Base64 / CDN)
-// Using Google CodeSkulptor which is very reliable for demos.
-const SOUND_CORRECT = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/bonus.mp3';
-const SOUND_WRONG = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/explosion_01.mp3'; 
-const SOUND_CLAP = 'https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/pause.mp3'; // Placeholder for completion
+// Using placeholder for now or handle via TTS if URLs fail
+const SOUND_CORRECT = null; // Will use TTS
+const SOUND_WRONG = null; // Will use TTS
+const SOUND_CLAP = null; // Will use TTS
 
 const QuizSessionPage = () => {
   const { materiId } = useParams();
   const { user } = useAuth();
-  const { playAudio, stopAll } = useAudio();
+  const { playAudio, playText, stopAll } = useAudio();
   const [kuis, setKuis] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -77,7 +77,7 @@ const QuizSessionPage = () => {
     const isCorrect = index === kuis.pertanyaan[currentQuestionIndex].indeks_jawaban_benar;
 
     if (isCorrect) {
-      try { playAudio(SOUND_CORRECT); } catch (e) { console.warn("Audio error:", e); }
+      playText("Jawaban Benar! Hebat!");
       setScore(prev => prev + 1);
       confetti({
         particleCount: 50,
@@ -85,7 +85,7 @@ const QuizSessionPage = () => {
         origin: { y: 0.7 }
       });
     } else {
-      try { playAudio(SOUND_WRONG); } catch (e) { console.warn("Audio error:", e); }
+      playText("Kurang tepat, tetap semangat ya!");
     }
 
     // Auto next after delay
@@ -99,12 +99,12 @@ const QuizSessionPage = () => {
     }, 2000);
   };
 
-  const finishQuiz = (finalAnswers) => {
+  const finishQuiz = async (finalAnswers) => {
     // Send score to backend first to update stats
-    submitScore(finalAnswers);
+    await submitScore(finalAnswers);
     
     setShowResult(true);
-    try { playAudio(SOUND_CLAP); } catch (e) { console.warn("Audio error:", e); }
+    playText("Selamat! Kamu telah menyelesaikan kuis ini.");
     confetti({
       particleCount: 200,
       spread: 100,
