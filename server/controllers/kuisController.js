@@ -255,45 +255,73 @@ exports.getQuizReport = async (req, res) => {
         const totalQuestions = kuis ? kuis.pertanyaan.length : 0;
         
         // Initialize questionStats for ALL questions
-        const questionStats = {}; // { qIndex: { optionIndex: count } }
+        const questionStats = {}; // { qIndex: { optionIndex: { count: 0, students: [] } } }
         for (let i = 0; i < totalQuestions; i++) {
             questionStats[i] = {};
         }
 
         students.forEach(student => {
             const historyItem = student.history.find(h => h.materi.toString() === materiId);
-            if (historyItem && historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
-                const attempts = historyItem.riwayat_percobaan;
-                
-                // Best Attempt Logic (Highest Score, then Earliest Time)
-                const sortedAttempts = [...attempts].sort((a, b) => {
-                    if (b.skor !== a.skor) return b.skor - a.skor;
-                    return new Date(a.tanggal) - new Date(b.tanggal);
-                });
+            if (historyItem) {
+                let bestScore = 0;
+                let bestTime = historyItem.tanggal;
+                let bestAnswers = [];
+                let correctCount = 0;
 
-                const bestAttempt = sortedAttempts[0];
+                // Check for detailed attempt history (New Format)
+                if (historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
+                    const attempts = historyItem.riwayat_percobaan;
+                    // Best Attempt Logic (Highest Score, then Earliest Time)
+                    const sortedAttempts = [...attempts].sort((a, b) => {
+                        if (b.skor !== a.skor) return b.skor - a.skor;
+                        return new Date(a.tanggal) - new Date(b.tanggal);
+                    });
+
+                    const bestAttempt = sortedAttempts[0];
+                    bestScore = bestAttempt.skor;
+                    bestTime = bestAttempt.tanggal;
+                    bestAnswers = bestAttempt.jawaban;
+                } else {
+                    // Fallback for legacy
+                    bestScore = historyItem.skor || 0;
+                    bestTime = historyItem.tanggal;
+                }
+
+                // Calculate Correct Count for this student (based on best answers)
+                if (bestAnswers && bestAnswers.length > 0 && kuis) {
+                    kuis.pertanyaan.forEach((p, idx) => {
+                        if (bestAnswers[idx] === p.indeks_jawaban_benar) {
+                            correctCount++;
+                        }
+                    });
+                }
 
                 // Add to Report Data
                 reportData.push({
                     nama: student.nama,
-                    kelas: student.kelas || '-', // Ensure default if empty string
-                    attemptNumber: attempts.length,
-                    skor: bestAttempt.skor,
-                    waktu: bestAttempt.tanggal,
+                    kelas: student.kelas || '-', 
+                    attemptNumber: historyItem.riwayat_percobaan ? historyItem.riwayat_percobaan.length : 1,
+                    skor: bestScore,
+                    waktu: bestTime,
                     jenjang: student.jenjang,
-                    jawaban: bestAttempt.jawaban // Add answers to report
+                    jawaban: bestAnswers,
+                    correctCount: correctCount, // Added: Total Correct Answers
+                    totalQuestions: totalQuestions // Added: Total Questions
                 });
 
-                // Add to Stats
-                // We count ALL students who took this quiz to ensure consistency with the report list.
-                if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
-                    bestAttempt.jawaban.forEach((ans, qIdx) => {
-                        // Ensure ans is a number
+                // Add to Stats (Distribution of answers)
+                if (bestAnswers && bestAnswers.length > 0) {
+                    bestAnswers.forEach((ans, qIdx) => {
                         const ansIdx = Number(ans);
-                        if (!isNaN(ansIdx) && ansIdx !== -1) { // Skip unanswered (-1)
+                        if (!isNaN(ansIdx) && ansIdx !== -1) {
                             if (!questionStats[qIdx]) questionStats[qIdx] = {};
-                            if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = 0;
-                            questionStats[qIdx][ansIdx]++;
+                            if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = { count: 0, students: [] };
+                            
+                            questionStats[qIdx][ansIdx].count++;
+                            questionStats[qIdx][ansIdx].students.push({
+                                nama: student.nama,
+                                kelas: student.kelas
+                            });
                         }
                     });
                 }
@@ -310,19 +338,24 @@ exports.getQuizReport = async (req, res) => {
         const finalStats = {};
         Object.keys(questionStats).forEach(qIdx => {
             const options = questionStats[qIdx];
-            const totalRespondents = Object.values(options).reduce((a, b) => a + b, 0);
+            // totalRespondents is sum of count
+            const totalRespondents = Object.values(options).reduce((a, b) => a + b.count, 0);
             
-            // Denominator is Total Respondents (those who took the quiz)
             const denominator = totalRespondents > 0 ? totalRespondents : 1;
 
             finalStats[qIdx] = {
                 totalVotes: totalRespondents,
                 totalPopulation: students.length,
-                distribution: options,
+                distribution: {}, // { 0: 5, 1: 2 } (Just counts)
+                studentLists: {}, // { 0: [{nama: '...', kelas: '...'}], ... }
                 percentages: {}
             };
+
             Object.keys(options).forEach(optIdx => {
-                finalStats[qIdx].percentages[optIdx] = Math.round((options[optIdx] / denominator) * 100);
+                const data = options[optIdx];
+                finalStats[qIdx].distribution[optIdx] = data.count;
+                finalStats[qIdx].studentLists[optIdx] = data.students;
+                finalStats[qIdx].percentages[optIdx] = Math.round((data.count / denominator) * 100);
             });
         });
 

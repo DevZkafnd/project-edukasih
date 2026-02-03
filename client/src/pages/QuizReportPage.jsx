@@ -87,13 +87,13 @@ const QuizReportPage = () => {
         doc.text(`Jenjang: ${selectedMaterial.jenjang || '-'}`, 14, 28);
         doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 34);
 
-        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Bintang (0-3)", "Jawaban Siswa", "Waktu"];
+        const tableColumn = ["No", "Nama Siswa", "Kelas", "Percobaan", "Bintang (0-3)", "Total Benar", "Waktu"];
         const tableRows = [];
 
         reportData.forEach((row, index) => {
-            // Format answers as 1(A), 2(B), etc.
-            const formattedAnswers = row.jawaban 
-                ? row.jawaban.map((ans, idx) => `${idx + 1}(${ans === -1 ? '-' : getOptionLetter(ans)})`).join(', ')
+            // Show Correct Count / Total Questions
+            const totalCorrectString = row.correctCount !== undefined 
+                ? `${row.correctCount} / ${row.totalQuestions}` 
                 : '-';
 
             const rowData = [
@@ -102,7 +102,7 @@ const QuizReportPage = () => {
                 row.kelas || '-',
                 row.attemptNumber,
                 row.skor + ' ⭐',
-                formattedAnswers,
+                totalCorrectString,
                 new Date(row.waktu).toLocaleString('id-ID')
             ];
             tableRows.push(rowData);
@@ -116,7 +116,7 @@ const QuizReportPage = () => {
             styles: { fontSize: 10 },
             headStyles: { fillColor: [66, 133, 244] },
             columnStyles: {
-                5: { cellWidth: 50 } // Give more space for answers
+                5: { cellWidth: 30, halign: 'center' } // Adjust width for "8 / 10"
             }
         });
 
@@ -164,25 +164,32 @@ const QuizReportPage = () => {
                     const count = stats && stats.distribution ? (stats.distribution[optIdx] || 0) : 0;
                     const percent = stats && stats.percentages ? (stats.percentages[optIdx] || 0) : 0;
                     
+                    // Format student list: "Andi (Kelas 1), Budi (Kelas 1)"
+                    const studentList = stats && stats.studentLists && stats.studentLists[optIdx] 
+                        ? stats.studentLists[optIdx].map(s => `${s.nama} (${s.kelas || '-'})`).join(', ')
+                        : '-';
+
                     statRows.push([
                         getOptionLetter(optIdx),
                         opt.teks + (isCorrect ? ' (Kunci Jawaban)' : ''),
                         `${count} Siswa`,
-                        `${percent}%`
+                        `${percent}%`,
+                        studentList // Added Student List Column
                     ]);
                 });
 
                 autoTable(doc, {
-                    head: [['Opsi', 'Jawaban', 'Jumlah Memilih', 'Persentase']],
+                    head: [['Opsi', 'Jawaban', 'Jumlah', 'Persentase', 'Siswa Memilih']],
                     body: statRows,
                     startY: currentY,
                     theme: 'striped',
                     styles: { fontSize: 9 },
                     headStyles: { fillColor: [100, 100, 100] },
                     columnStyles: {
-                        0: { cellWidth: 15, halign: 'center' },
-                        2: { cellWidth: 30, halign: 'center' },
-                        3: { cellWidth: 25, halign: 'center' }
+                        0: { cellWidth: 10, halign: 'center' },
+                        2: { cellWidth: 20, halign: 'center' },
+                        3: { cellWidth: 20, halign: 'center' },
+                        4: { cellWidth: 80 } // Wide column for student names
                     },
                     margin: { left: 14 }
                 });
@@ -330,35 +337,31 @@ const QuizReportPage = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50 sticky top-0 z-10">
                                         <tr>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200">No</th>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200">Nama Siswa</th>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200">Kelas</th>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200 text-center">Percobaan</th>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200 text-center">Skor</th>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200">Jawaban Siswa</th>
-                                            <th className="p-4 font-bold text-gray-600 border-b border-gray-200 text-right">Waktu</th>
+                                            <th className="p-4 text-sm font-bold text-gray-600">No</th>
+                                            <th className="p-4 text-sm font-bold text-gray-600">Nama Siswa</th>
+                                            <th className="p-4 text-sm font-bold text-gray-600">Kelas</th>
+                                            <th className="p-4 text-sm font-bold text-gray-600 text-center">Percobaan</th>
+                                            <th className="p-4 text-sm font-bold text-gray-600 text-center">Bintang</th>
+                                            <th className="p-4 text-sm font-bold text-gray-600">Total Benar</th>
+                                            <th className="p-4 text-right text-sm font-bold text-gray-600">Waktu</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100">
+                                    <tbody>
                                         {reportData.map((row, idx) => (
-                                            <tr key={idx} className="hover:bg-blue-50/50 transition">
-                                                <td className="p-4 text-gray-500">{idx + 1}</td>
+                                            <tr key={idx} className="border-t border-gray-100 hover:bg-gray-50 transition">
+                                                <td className="p-4 text-sm text-gray-600">{idx + 1}</td>
                                                 <td className="p-4 font-bold text-gray-800">{row.nama}</td>
-                                                <td className="p-4 text-gray-600">{row.kelas || '-'}</td>
+                                                <td className="p-4 text-sm text-gray-600">{row.kelas || '-'}</td>
                                                 <td className="p-4 text-center">
-                                                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold">
-                                                        #{row.attemptNumber}
+                                                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-bold">
+                                                        {row.attemptNumber}x
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-center">
-                                                    <div className="inline-flex items-center gap-1 font-bold text-brand-yellow">
-                                                        {row.skor} <span className="text-gray-400 font-normal text-xs">Bintang</span>
-                                                    </div>
+                                                <td className="p-4 text-center font-bold text-brand-yellow">
+                                                    {row.skor} ⭐
                                                 </td>
-                                                <td className="p-4 text-sm font-mono text-gray-600">
-                                                    {row.jawaban 
-                                                        ? row.jawaban.map((ans, idx) => `${idx + 1}(${ans === -1 ? '-' : String.fromCharCode(65 + ans)})`).join(', ')
-                                                        : '-'}
+                                                <td className="p-4 text-sm text-gray-600 font-mono">
+                                                    {row.correctCount !== undefined ? `${row.correctCount} / ${row.totalQuestions}` : '-'}
                                                 </td>
                                                 <td className="p-4 text-right text-sm text-gray-500">
                                                     {new Date(row.waktu).toLocaleString('id-ID')}
