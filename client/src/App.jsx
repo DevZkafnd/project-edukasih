@@ -46,7 +46,7 @@ function App() {
             <Route path="/dashboard-admin" element={<RequireRole role="admin"><AdminDashboard /></RequireRole>} />
             <Route path="/manage-quiz/:materiId" element={<QuizEditorPage />} />
             <Route path="/forum" element={
-              <RequireRole role="guru">
+              <RequireRole>
                 <ForumPage />
               </RequireRole>
             } />
