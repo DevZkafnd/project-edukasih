@@ -131,6 +131,8 @@ const QuizReportPage = () => {
             const totalPop = reportStats[0] ? reportStats[0].totalPopulation : 0;
             const totalVotes = reportStats[0] ? reportStats[0].totalVotes : 0; // Approximate from first question
             
+            let currentY = 38; // Default start Y
+
             doc.text(`Distribusi jawaban berdasarkan jenjang: ${selectedMaterial.jenjang}`, 14, 28);
             if (totalPop > 0) {
                 doc.text(`Total Siswa Jenjang: ${totalPop} | Partisipasi: ${totalVotes} Siswa`, 14, 34);
