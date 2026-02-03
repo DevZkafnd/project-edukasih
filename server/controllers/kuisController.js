@@ -254,10 +254,17 @@ exports.getQuizReport = async (req, res) => {
         const kuis = await Kuis.findOne({ materi: materiId });
         const totalQuestions = kuis ? kuis.pertanyaan.length : 0;
         
-        // Initialize questionStats for ALL questions
-        const questionStats = {}; // { qIndex: { optionIndex: { count: 0, students: [] } } }
-        for (let i = 0; i < totalQuestions; i++) {
-            questionStats[i] = {};
+        // Initialize questionStats for ALL questions and ALL options
+        const questionStats = {}; 
+        if (kuis && kuis.pertanyaan) {
+            kuis.pertanyaan.forEach((q, qIdx) => {
+                questionStats[qIdx] = {};
+                if (q.opsi_jawaban) {
+                    q.opsi_jawaban.forEach((opt, optIdx) => {
+                        questionStats[qIdx][optIdx] = { count: 0, students: [] };
+                    });
+                }
+            });
         }
 
         students.forEach(student => {

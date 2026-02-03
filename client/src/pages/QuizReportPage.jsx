@@ -101,7 +101,7 @@ const QuizReportPage = () => {
                 row.nama,
                 row.kelas || '-',
                 row.attemptNumber,
-                row.skor + ' ⭐',
+                row.skor,
                 totalCorrectString,
                 new Date(row.waktu).toLocaleString('id-ID')
             ];
@@ -165,7 +165,7 @@ const QuizReportPage = () => {
                     const percent = stats && stats.percentages ? (stats.percentages[optIdx] || 0) : 0;
                     
                     // Format student list: "Andi (Kelas 1), Budi (Kelas 1)"
-                    const studentList = stats && stats.studentLists && stats.studentLists[optIdx] 
+                    const studentList = stats && stats.studentLists && stats.studentLists[optIdx] && stats.studentLists[optIdx].length > 0
                         ? stats.studentLists[optIdx].map(s => `${s.nama} (${s.kelas || '-'})`).join(', ')
                         : '-';
 
@@ -357,8 +357,10 @@ const QuizReportPage = () => {
                                                         {row.attemptNumber}x
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-center font-bold text-brand-yellow">
-                                                    {row.skor} ⭐
+                                                <td className="p-4 text-center">
+                                                    <div className="inline-flex items-center justify-center gap-1 font-bold text-brand-yellow text-lg">
+                                                        {row.skor}
+                                                    </div>
                                                 </td>
                                                 <td className="p-4 text-sm text-gray-600 font-mono">
                                                     {row.correctCount !== undefined ? `${row.correctCount} / ${row.totalQuestions}` : '-'}
