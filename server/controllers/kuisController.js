@@ -259,6 +259,7 @@ exports.getQuizReport = async (req, res) => {
         if (kuis && kuis.pertanyaan) {
             kuis.pertanyaan.forEach((q, qIdx) => {
                 questionStats[qIdx] = {};
+                // Initialize based on options defined in the quiz
                 if (q.opsi_jawaban) {
                     q.opsi_jawaban.forEach((opt, optIdx) => {
                         questionStats[qIdx][optIdx] = { count: 0, students: [] };
@@ -268,7 +269,11 @@ exports.getQuizReport = async (req, res) => {
         }
 
         students.forEach(student => {
-            const historyItem = student.history.find(h => h.materi.toString() === materiId);
+            // Robust matching for history item
+            const historyItem = student.history.find(h => 
+                h.materi && h.materi.toString() === materiId
+            );
+            
             if (historyItem) {
                 let bestScore = 0;
                 let bestTime = historyItem.tanggal;
@@ -287,18 +292,22 @@ exports.getQuizReport = async (req, res) => {
                     const bestAttempt = sortedAttempts[0];
                     bestScore = bestAttempt.skor;
                     bestTime = bestAttempt.tanggal;
-                    bestAnswers = bestAttempt.jawaban;
+                    bestAnswers = bestAttempt.jawaban || []; // Ensure array
                 } else {
                     // Fallback for legacy
                     bestScore = historyItem.skor || 0;
                     bestTime = historyItem.tanggal;
+                    bestAnswers = [];
                 }
 
                 // Calculate Correct Count for this student (based on best answers)
                 if (bestAnswers && bestAnswers.length > 0 && kuis) {
                     kuis.pertanyaan.forEach((p, idx) => {
-                        if (bestAnswers[idx] === p.indeks_jawaban_benar) {
-                            correctCount++;
+                        // Ensure answer exists for this question index
+                        if (bestAnswers[idx] !== undefined && bestAnswers[idx] !== null) {
+                            if (Number(bestAnswers[idx]) === p.indeks_jawaban_benar) {
+                                correctCount++;
+                            }
                         }
                     });
                 }
@@ -312,15 +321,17 @@ exports.getQuizReport = async (req, res) => {
                     waktu: bestTime,
                     jenjang: student.jenjang,
                     jawaban: bestAnswers,
-                    correctCount: correctCount, // Added: Total Correct Answers
-                    totalQuestions: totalQuestions // Added: Total Questions
+                    correctCount: correctCount, 
+                    totalQuestions: totalQuestions
                 });
 
                 // Add to Stats (Distribution of answers)
                 if (bestAnswers && bestAnswers.length > 0) {
                     bestAnswers.forEach((ans, qIdx) => {
                         const ansIdx = Number(ans);
-                        if (!isNaN(ansIdx) && ansIdx !== -1) {
+                        // Validate ansIdx is a valid number and not -1 (skipped)
+                        if (!isNaN(ansIdx) && ansIdx >= 0) {
+                            // Ensure structure exists (in case quiz changed or initialization missed)
                             if (!questionStats[qIdx]) questionStats[qIdx] = {};
                             if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = { count: 0, students: [] };
                             
