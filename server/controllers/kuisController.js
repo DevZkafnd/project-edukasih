@@ -167,20 +167,19 @@ exports.getQuizStats = async (req, res) => {
             return new Date(a.waktu) - new Date(b.waktu);
         });
 
-        // Calculate Percentages based on TOTAL STUDENTS IN JENJANG
-        // "persentase itu adalah hitungan dari jumlah total kelas dan siswa sesuai jenjang nya masing-masing"
+        // Calculate Percentages based on TOTAL STUDENTS WHO ATTEMPTED THE QUIZ
+        // "persentase pada kotak quiz itu jawaban dari total keseluruhan siswa yang mengerjakan materi tersebut"
         const finalStats = {};
         Object.keys(questionStats).forEach(qIdx => {
             const options = questionStats[qIdx];
             const totalRespondents = Object.values(options).reduce((a, b) => a + b, 0);
             
-            // Denominator is Total Students in Jenjang (Population), not just respondents
-            // This ensures stability: 1 vote out of 30 students = 3.3%, not 100%
-            const denominator = totalStudentsInJenjang > 0 ? totalStudentsInJenjang : 1;
+            // Denominator is Total Respondents (those who took the quiz), NOT total population
+            const denominator = totalRespondents > 0 ? totalRespondents : 1;
 
             finalStats[qIdx] = {
                 totalVotes: totalRespondents,
-                totalPopulation: totalStudentsInJenjang,
+                totalPopulation: totalStudentsInJenjang, // Keep for reference if needed
                 distribution: options, // { 0: 5, 1: 2 }
                 percentages: {}
             };
@@ -290,19 +289,18 @@ exports.getQuizReport = async (req, res) => {
             return new Date(a.waktu) - new Date(b.waktu);
         });
 
-        // Calculate Percentages for Stats based on TOTAL STUDENTS IN JENJANG
+        // Calculate Percentages for Stats based on TOTAL STUDENTS WHO ATTEMPTED THE QUIZ
         const finalStats = {};
         Object.keys(questionStats).forEach(qIdx => {
             const options = questionStats[qIdx];
             const totalRespondents = Object.values(options).reduce((a, b) => a + b, 0);
             
-            // Denominator is Total Students in Jenjang (Population)
-            const totalPopulation = students.length;
-            const denominator = totalPopulation > 0 ? totalPopulation : 1;
+            // Denominator is Total Respondents (those who took the quiz)
+            const denominator = totalRespondents > 0 ? totalRespondents : 1;
 
             finalStats[qIdx] = {
                 totalVotes: totalRespondents,
-                totalPopulation: totalPopulation,
+                totalPopulation: students.length,
                 distribution: options,
                 percentages: {}
             };
