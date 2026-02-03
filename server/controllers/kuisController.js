@@ -133,15 +133,32 @@ exports.getQuizStats = async (req, res) => {
 
         studentsWithHistory.forEach(student => {
             const historyItem = student.history.find(h => h.materi.toString() === materiId);
-            if (historyItem && historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
-                // Find best attempt (highest score)
-                // We use the BEST attempt to avoid "ketidakstabilan" (instability) from trial-and-error attempts
-                const attempts = historyItem.riwayat_percobaan;
-                const bestAttempt = attempts.reduce((prev, current) => (prev.skor >= current.skor ? prev : current));
+            
+            if (historyItem) {
+                let bestScore = 0;
+                let bestTime = historyItem.tanggal;
+                let bestAnswers = [];
+
+                // Check for detailed attempt history (New Format)
+                if (historyItem.riwayat_percobaan && historyItem.riwayat_percobaan.length > 0) {
+                    // Find best attempt
+                    const attempts = historyItem.riwayat_percobaan;
+                    const bestAttempt = attempts.reduce((prev, current) => (prev.skor >= current.skor ? prev : current));
+                    
+                    bestScore = bestAttempt.skor;
+                    bestTime = bestAttempt.tanggal;
+                    bestAnswers = bestAttempt.jawaban;
+                } else {
+                    // Fallback to Legacy Format (Top-level score only)
+                    bestScore = historyItem.skor || 0;
+                    bestTime = historyItem.tanggal;
+                    // No answers available for stats in legacy data
+                }
 
                 // Add to Stats (Distribution of answers in best attempts)
-                if (bestAttempt.jawaban && bestAttempt.jawaban.length > 0) {
-                    bestAttempt.jawaban.forEach((ans, qIdx) => {
+                // Only if we have answer data
+                if (bestAnswers && bestAnswers.length > 0) {
+                    bestAnswers.forEach((ans, qIdx) => {
                         const ansIdx = Number(ans);
                         if (!isNaN(ansIdx) && ansIdx !== -1) {
                             if (!questionStats[qIdx]) questionStats[qIdx] = {};
@@ -155,8 +172,8 @@ exports.getQuizStats = async (req, res) => {
                 leaderboard.push({
                     nama: student.nama,
                     kelas: student.kelas,
-                    skor: bestAttempt.skor,
-                    waktu: bestAttempt.tanggal
+                    skor: bestScore,
+                    waktu: bestTime
                 });
             }
         });
