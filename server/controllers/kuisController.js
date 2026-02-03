@@ -243,10 +243,12 @@ exports.getQuizReport = async (req, res) => {
         const jenjang = materi.jenjang; 
 
         // 2. Find students in this jenjang with history
-        // Use regex for case-insensitive match on jenjang if needed, but exact match is safer for strict logic
+        // Remove .select() to ensure we get the full document structure including deep nested riwayat_percobaan
         const students = await Siswa.find({ 
             'history.materi': materiId 
-        }).select('nama kelas history jenjang');
+        });
+
+        console.log(`[Report Debug] Found ${students.length} students for Materi ${materiId}`);
 
         const reportData = [];
         
@@ -327,11 +329,17 @@ exports.getQuizReport = async (req, res) => {
 
                 // Add to Stats (Distribution of answers)
                 if (bestAnswers && bestAnswers.length > 0) {
+                    console.log(`[Report Debug] Processing answers for ${student.nama}:`, bestAnswers); 
                     bestAnswers.forEach((ans, qIdx) => {
-                        const ansIdx = Number(ans);
+                        // Parse answer safely - handle strings, numbers, or nulls
+                        let ansIdx = -1;
+                        if (ans !== null && ans !== undefined) {
+                            ansIdx = parseInt(ans, 10);
+                        }
+                        
                         // Validate ansIdx is a valid number and not -1 (skipped)
                         if (!isNaN(ansIdx) && ansIdx >= 0) {
-                            // Ensure structure exists (in case quiz changed or initialization missed)
+                            // Ensure structure exists
                             if (!questionStats[qIdx]) questionStats[qIdx] = {};
                             if (!questionStats[qIdx][ansIdx]) questionStats[qIdx][ansIdx] = { count: 0, students: [] };
                             
@@ -342,6 +350,8 @@ exports.getQuizReport = async (req, res) => {
                             });
                         }
                     });
+                } else {
+                    console.log(`[Report Debug] No answers found for ${student.nama}`);
                 }
             }
         });
